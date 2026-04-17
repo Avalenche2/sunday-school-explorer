@@ -9,6 +9,9 @@ import NotFound from "./pages/NotFound.tsx";
 import Inscription from "./pages/Inscription.tsx";
 import Connexion from "./pages/Connexion.tsx";
 import Quizz from "./pages/Quizz.tsx";
+import QuizzPlay from "./pages/QuizzPlay.tsx";
+import QuizzRecap from "./pages/QuizzRecap.tsx";
+import Classement from "./pages/Classement.tsx";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +27,9 @@ const App = () => (
             <Route path="/inscription" element={<Inscription />} />
             <Route path="/connexion" element={<Connexion />} />
             <Route path="/quizz" element={<Quizz />} />
+            <Route path="/quizz/:id" element={<QuizzPlay />} />
+            <Route path="/quizz/:id/recap" element={<QuizzRecap />} />
+            <Route path="/classement" element={<Classement />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
