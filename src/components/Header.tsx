@@ -1,7 +1,9 @@
 import { Link, NavLink } from "react-router-dom";
-import { BookOpen, Menu, X } from "lucide-react";
+import { BookOpen, LogOut, Menu, User as UserIcon, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -12,6 +14,14 @@ const navItems = [
 
 export const Header = () => {
   const [open, setOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast({ title: "À bientôt !", description: "Tu es déconnecté." });
+    setOpen(false);
+  };
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-md">
@@ -46,12 +56,27 @@ export const Header = () => {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/connexion">Connexion</Link>
-          </Button>
-          <Button asChild size="sm" className="bg-primary hover:bg-primary/90">
-            <Link to="/inscription">S'inscrire</Link>
-          </Button>
+          {user ? (
+            <>
+              <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <UserIcon className="h-4 w-4" strokeWidth={1.5} />
+                {user.email}
+              </span>
+              <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                <LogOut className="h-4 w-4" />
+                Déconnexion
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/connexion">Connexion</Link>
+              </Button>
+              <Button asChild size="sm" className="bg-primary hover:bg-primary/90">
+                <Link to="/inscription">S'inscrire</Link>
+              </Button>
+            </>
+          )}
         </div>
 
         <button
@@ -83,12 +108,21 @@ export const Header = () => {
               </NavLink>
             ))}
             <div className="flex gap-2 pt-3 mt-2 border-t border-border/60">
-              <Button asChild variant="outline" size="sm" className="flex-1">
-                <Link to="/connexion" onClick={() => setOpen(false)}>Connexion</Link>
-              </Button>
-              <Button asChild size="sm" className="flex-1">
-                <Link to="/inscription" onClick={() => setOpen(false)}>S'inscrire</Link>
-              </Button>
+              {user ? (
+                <Button variant="outline" size="sm" className="flex-1" onClick={handleSignOut}>
+                  <LogOut className="h-4 w-4" />
+                  Déconnexion
+                </Button>
+              ) : (
+                <>
+                  <Button asChild variant="outline" size="sm" className="flex-1">
+                    <Link to="/connexion" onClick={() => setOpen(false)}>Connexion</Link>
+                  </Button>
+                  <Button asChild size="sm" className="flex-1">
+                    <Link to="/inscription" onClick={() => setOpen(false)}>S'inscrire</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
