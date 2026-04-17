@@ -12,7 +12,7 @@ export const signUpSchema = z.object({
     .min(1, "Nom requis")
     .max(50, "Nom trop long"),
   age: z
-    .number({ invalid_type_error: "Âge requis" })
+    .number({ message: "Âge requis" })
     .int()
     .min(4, "Âge minimum : 4 ans")
     .max(18, "Âge maximum : 18 ans"),
