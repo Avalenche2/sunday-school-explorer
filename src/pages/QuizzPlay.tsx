@@ -377,7 +377,7 @@ const QuizzPlay = () => {
           ) : (
             <Button
               onClick={handleSubmit}
-              disabled={!allAnswered || submitting}
+              disabled={submitting}
               className="bg-accent text-accent-foreground hover:bg-accent/90"
             >
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
