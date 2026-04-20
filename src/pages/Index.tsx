@@ -1,6 +1,7 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { GospelOfTheDay } from "@/components/home/GospelOfTheDay";
+import { QuoteOfTheDay } from "@/components/home/QuoteOfTheDay";
 import { QuizzOfTheWeek } from "@/components/home/QuizzOfTheWeek";
 import { TopJuniors } from "@/components/home/TopJuniors";
 import { Schedules } from "@/components/home/Schedules";
@@ -54,6 +55,7 @@ const Index = () => {
           <div className="grid gap-6 lg:grid-cols-3 [&:not(:has(>*>*))]:hidden">
             <Cell className="lg:col-span-2 space-y-6">
               <GospelOfTheDay />
+              <QuoteOfTheDay />
               <DailyChallenge />
             </Cell>
             <Cell>
