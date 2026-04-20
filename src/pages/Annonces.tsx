@@ -171,8 +171,8 @@ const Annonces = () => {
           <p className="mt-12 text-center text-sm text-muted-foreground">
             {list.length === 0
               ? "Aucune annonce pour le moment."
-              : query
-                ? `Aucun résultat pour « ${query} »${year !== "all" ? ` en ${year}` : ""}.`
+              : debouncedQuery
+                ? `Aucun résultat pour « ${debouncedQuery} »${year !== "all" ? ` en ${year}` : ""}.`
                 : "Aucune annonce pour cette année."}
           </p>
         ) : (
@@ -180,7 +180,7 @@ const Annonces = () => {
             <p className="mt-6 text-xs text-muted-foreground">
               {filtered.length} annonce{filtered.length > 1 ? "s" : ""}
               {year !== "all" && ` en ${year}`}
-              {query && ` pour « ${query} »`}
+              {debouncedQuery && ` pour « ${debouncedQuery} »`}
             </p>
 
             <div className="mt-4 space-y-6">
