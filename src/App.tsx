@@ -14,6 +14,7 @@ import QuizzRecap from "./pages/QuizzRecap.tsx";
 import Classement from "./pages/Classement.tsx";
 import Profil from "./pages/Profil.tsx";
 import Annonces from "./pages/Annonces.tsx";
+import Citations from "./pages/Citations.tsx";
 import { AdminLayout } from "./components/AdminLayout.tsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
 import AdminQuizzes from "./pages/admin/AdminQuizzes.tsx";
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/classement" element={<Classement />} />
             <Route path="/profil" element={<Profil />} />
             <Route path="/annonces" element={<Annonces />} />
+            <Route path="/citations" element={<Citations />} />
             <Route path="/admin/connexion" element={<AdminConnexion />} />
             <Route path="/admin/inscription" element={<AdminInscription />} />
             <Route path="/admin" element={<AdminLayout />}>

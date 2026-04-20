@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 const baseNavItems = [
   { to: "/", label: "Accueil" },
   { to: "/quizz", label: "Quizz" },
+  { to: "/citations", label: "Citations" },
   { to: "/classement", label: "Classement" },
 ];
 
