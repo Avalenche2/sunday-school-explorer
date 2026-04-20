@@ -1,12 +1,12 @@
-import { Trophy } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Loader2, Trophy } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
-const juniors = [
-  { rank: 1, name: "Marie K.", points: 480 },
-  { rank: 2, name: "David N.", points: 445 },
-  { rank: 3, name: "Esther M.", points: 410 },
-  { rank: 4, name: "Samuel B.", points: 385 },
-  { rank: 5, name: "Ruth A.", points: 360 },
-];
+interface Junior {
+  rank: number;
+  name: string;
+  points: number;
+}
 
 const rankColors: Record<number, string> = {
   1: "bg-gradient-gold text-primary shadow-gold",
@@ -15,6 +15,60 @@ const rankColors: Record<number, string> = {
 };
 
 export const TopJuniors = () => {
+  const [list, setList] = useState<Junior[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+      const [{ data: attempts }, { data: profiles }] = await Promise.all([
+        supabase
+          .from("quiz_attempts")
+          .select("user_id, score, completed_at")
+          .gte("completed_at", monthStart),
+        supabase.from("profiles").select("id, first_name, last_name"),
+      ]);
+
+      const totals = new Map<string, number>();
+      (attempts ?? []).forEach((a: { user_id: string; score: number }) => {
+        totals.set(a.user_id, (totals.get(a.user_id) ?? 0) + a.score);
+      });
+
+      const profileMap = new Map<string, string>();
+      (profiles ?? []).forEach(
+        (p: { id: string; first_name: string; last_name: string }) => {
+          const last = p.last_name ? ` ${p.last_name[0]}.` : "";
+          profileMap.set(p.id, `${p.first_name}${last}`.trim());
+        }
+      );
+
+      const ranked = Array.from(totals.entries())
+        .map(([uid, points]) => ({
+          name: profileMap.get(uid) ?? "Junior",
+          points,
+        }))
+        .sort((a, b) => b.points - a.points)
+        .slice(0, 5)
+        .map((j, i) => ({ ...j, rank: i + 1 }));
+
+      setList(ranked);
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="rounded-2xl border border-border bg-card p-8 shadow-soft flex justify-center">
+        <Loader2 className="h-5 w-5 animate-spin text-accent" />
+      </section>
+    );
+  }
+
+  if (list.length === 0) return null;
+
   return (
     <section className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-soft">
       <div className="flex items-center justify-between">
@@ -32,7 +86,7 @@ export const TopJuniors = () => {
       </div>
 
       <ul className="mt-6 space-y-2">
-        {juniors.map((j) => (
+        {list.map((j) => (
           <li
             key={j.rank}
             className="flex items-center gap-4 rounded-xl border border-border/60 bg-background/40 p-3 transition-smooth hover:border-accent/40 hover:bg-secondary/40"

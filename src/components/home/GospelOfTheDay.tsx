@@ -1,23 +1,65 @@
-import { Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Loader2, Sparkles } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Gospel {
+  reference: string;
+  verse: string;
+  commentary: string | null;
+  gospel_date: string;
+}
+
+const todayStr = () => new Date().toISOString().slice(0, 10);
 
 export const GospelOfTheDay = () => {
-  // Données factices — seront remplacées par Lovable Cloud
-  const gospel = {
-    reference: "Jean 3:16",
-    verse:
-      "Car Dieu a tant aimé le monde qu'il a donné son Fils unique, afin que quiconque croit en lui ne périsse point, mais qu'il ait la vie éternelle.",
-    commentary:
-      "Ce verset nous rappelle l'immensité de l'amour de Dieu pour chacun de nous. Aujourd'hui, prends un instant pour remercier le Seigneur de ce don inestimable.",
-    date: new Date().toLocaleDateString("fr-FR", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-    }),
-  };
+  const [gospel, setGospel] = useState<Gospel | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const today = todayStr();
+      // Cherche d'abord celui d'aujourd'hui, sinon le plus récent <= aujourd'hui
+      let { data } = await supabase
+        .from("daily_gospel")
+        .select("reference, verse, commentary, gospel_date")
+        .eq("gospel_date", today)
+        .maybeSingle();
+
+      if (!data) {
+        const fallback = await supabase
+          .from("daily_gospel")
+          .select("reference, verse, commentary, gospel_date")
+          .lte("gospel_date", today)
+          .order("gospel_date", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        data = fallback.data;
+      }
+
+      setGospel(data as Gospel | null);
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="rounded-2xl bg-gradient-night text-primary-foreground shadow-elevated p-12 flex justify-center">
+        <Loader2 className="h-5 w-5 animate-spin text-gold" />
+      </section>
+    );
+  }
+
+  if (!gospel) return null;
+
+  const formattedDate = new Date(gospel.gospel_date).toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
 
   return (
     <section className="relative overflow-hidden rounded-2xl bg-gradient-night text-primary-foreground shadow-elevated">
-      {/* Décor */}
       <div className="absolute inset-0 opacity-[0.07]" aria-hidden>
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-gold blur-3xl" />
         <div className="absolute -bottom-32 -left-16 h-72 w-72 rounded-full bg-gold blur-3xl" />
@@ -32,22 +74,23 @@ export const GospelOfTheDay = () => {
         </div>
 
         <p className="mt-2 text-sm text-primary-foreground/60 capitalize">
-          {gospel.date}
+          {formattedDate}
         </p>
 
         <blockquote className="mt-6 verse-quote text-primary-foreground/95 max-w-3xl">
           « {gospel.verse} »
         </blockquote>
 
-        <p className="mt-4 text-sm font-medium text-gold">
-          — {gospel.reference}
-        </p>
+        <p className="mt-4 text-sm font-medium text-gold">— {gospel.reference}</p>
 
-        <div className="mt-6 gold-divider" />
-
-        <p className="mt-6 text-sm md:text-base text-primary-foreground/80 leading-relaxed max-w-2xl">
-          {gospel.commentary}
-        </p>
+        {gospel.commentary && (
+          <>
+            <div className="mt-6 gold-divider" />
+            <p className="mt-6 text-sm md:text-base text-primary-foreground/80 leading-relaxed max-w-2xl whitespace-pre-line">
+              {gospel.commentary}
+            </p>
+          </>
+        )}
       </div>
     </section>
   );
