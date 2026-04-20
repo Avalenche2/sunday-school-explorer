@@ -111,7 +111,7 @@ const AdminStats = () => {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const [{ data: a }, { data: q }, { data: ans }, { data: qs }] =
+      const [{ data: a }, { data: q }, { data: ans }, { data: qs }, { data: pr }] =
         await Promise.all([
           supabase
             .from("quiz_attempts")
@@ -124,15 +124,81 @@ const AdminStats = () => {
             .select("question_id, is_correct")
             .limit(1000),
           supabase.from("questions").select("id, prompt, quiz_id"),
+          supabase.from("profiles").select("id, first_name, last_name"),
         ]);
       setAttempts((a ?? []) as Attempt[]);
       setQuizzes((q ?? []) as Quiz[]);
       setAnswers((ans ?? []) as Answer[]);
       setQuestions((qs ?? []) as Question[]);
+      const map = new Map<string, string>();
+      (pr ?? []).forEach((p: { id: string; first_name: string; last_name: string }) => {
+        map.set(p.id, `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim());
+      });
+      setProfiles(map);
       setLoading(false);
     };
     load();
   }, []);
+
+  const handleExportCSV = () => {
+    setExporting(true);
+    try {
+      const start = periodStart(exportPeriod);
+      const filtered = attempts.filter((at) => {
+        if (!start) return true;
+        return new Date(at.completed_at) >= start;
+      });
+      const quizMap = new Map(quizzes.map((q) => [q.id, q.title]));
+
+      const header = [
+        "Date",
+        "Heure",
+        "Enfant",
+        "Quizz",
+        "Score",
+        "Total",
+        "Pourcentage",
+      ];
+      const rows = filtered.map((at) => {
+        const d = new Date(at.completed_at);
+        const pct = at.total ? Math.round((at.score / at.total) * 100) : 0;
+        return [
+          d.toLocaleDateString("fr-FR"),
+          d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+          profiles.get(at.user_id) || "—",
+          quizMap.get(at.quiz_id) || "Quizz supprimé",
+          String(at.score),
+          String(at.total),
+          `${pct}%`,
+        ].map(csvEscape).join(",");
+      });
+
+      const csv = "\ufeff" + [header.join(","), ...rows].join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const stamp = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `participations_${exportPeriod}_${stamp}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Export prêt",
+        description: `${filtered.length} participation(s) exportée(s).`,
+      });
+    } catch (e) {
+      toast({
+        title: "Export impossible",
+        description: e instanceof Error ? e.message : "Erreur inconnue",
+        variant: "destructive",
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   /** KPIs */
   const kpis = useMemo(() => {
