@@ -348,6 +348,37 @@ const AdminStats = () => {
 
   return (
     <div className="space-y-6">
+      <Card className="shadow-soft border-accent/20">
+        <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-accent font-semibold">
+              Export des données
+            </p>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Télécharge les participations et scores au format CSV.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Select value={exportPeriod} onValueChange={(v) => setExportPeriod(v as PeriodKey)}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {periodOptions.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button onClick={handleExportCSV} disabled={exporting}>
+              {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              Exporter CSV
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {kpiCards.map((k) => {
           const Icon = k.icon;
