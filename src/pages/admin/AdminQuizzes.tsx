@@ -145,7 +145,8 @@ const AdminQuizzes = () => {
                 </div>
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
