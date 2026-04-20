@@ -12,6 +12,7 @@ import Quizz from "./pages/Quizz.tsx";
 import QuizzPlay from "./pages/QuizzPlay.tsx";
 import QuizzRecap from "./pages/QuizzRecap.tsx";
 import Classement from "./pages/Classement.tsx";
+import Profil from "./pages/Profil.tsx";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/quizz/:id" element={<QuizzPlay />} />
             <Route path="/quizz/:id/recap" element={<QuizzRecap />} />
             <Route path="/classement" element={<Classement />} />
+            <Route path="/profil" element={<Profil />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
-const navItems = [
+const baseNavItems = [
   { to: "/", label: "Accueil" },
   { to: "/quizz", label: "Quizz" },
   { to: "/classement", label: "Classement" },
@@ -16,6 +16,9 @@ export const Header = () => {
   const [open, setOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const navItems = user
+    ? [...baseNavItems, { to: "/profil", label: "Mon profil" }]
+    : baseNavItems;
 
   const handleSignOut = async () => {
     await signOut();
