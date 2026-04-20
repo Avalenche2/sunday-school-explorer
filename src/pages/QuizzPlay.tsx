@@ -46,6 +46,40 @@ const QuizzPlay = () => {
   const [alreadyDone, setAlreadyDone] = useState(false);
   const [timeLeft, setTimeLeft] = useState(QUESTION_DURATION);
   const submittedRef = useRef(false);
+  const warningTriggeredRef = useRef(false);
+
+  // Son discret + vibration quand le timer passe sous 5s
+  useEffect(() => {
+    if (timeLeft === 5 && !warningTriggeredRef.current) {
+      warningTriggeredRef.current = true;
+      // Vibration sur mobile (si supportée)
+      if (navigator.vibrate) {
+        navigator.vibrate([100, 50, 100]);
+      }
+      // Petit bip discret avec Web Audio API
+      try {
+        const AudioContext = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        if (AudioContext) {
+          const ctx = new AudioContext();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.frequency.value = 880; // La4, note aiguë discrète
+          gain.gain.value = 0.05; // Volume très bas
+          osc.start();
+          osc.stop(ctx.currentTime + 0.08); // 80ms max
+        }
+      } catch {
+        // Silencieux si Web Audio non supporté
+      }
+    }
+  }, [timeLeft]);
+
+  // Reset du warning quand on change de question
+  useEffect(() => {
+    warningTriggeredRef.current = false;
+  }, [current]);
 
   useEffect(() => {
     if (!id || !user) return;
