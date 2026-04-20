@@ -185,7 +185,7 @@ const QuizzPlay = () => {
     });
 
     navigate(`/quizz/${id}/recap`, { replace: true });
-  };
+  }, [user, id, questions, answers, navigate, toast]);
 
   if (!authLoading && !user) return <Navigate to="/connexion" replace />;
 
