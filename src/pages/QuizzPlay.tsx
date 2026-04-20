@@ -11,7 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import { BADGES, computeUnlockedBadges, type AttemptLite } from "@/lib/badges";
+import { BADGES, computeUnlockedBadges, type AttemptLite, type DailyChallengeAttemptLite } from "@/lib/badges";
 
 interface Quiz {
   id: string;
@@ -98,11 +98,22 @@ const QuizzPlay = () => {
       0
     );
 
-    const { data: priorAttempts } = await supabase
-      .from("quiz_attempts")
-      .select("id, quiz_id, score, total, completed_at")
-      .eq("user_id", user.id);
-    const before = computeUnlockedBadges((priorAttempts ?? []) as AttemptLite[]);
+    const [{ data: priorAttempts }, { data: priorChallenges }] = await Promise.all([
+      supabase
+        .from("quiz_attempts")
+        .select("id, quiz_id, score, total, completed_at")
+        .eq("user_id", user.id),
+      supabase
+        .from("daily_challenge_attempts")
+        .select("challenge_date, is_correct")
+        .eq("user_id", user.id),
+    ]);
+    const challengeLite = (priorChallenges ?? []) as DailyChallengeAttemptLite[];
+    const before = computeUnlockedBadges(
+      (priorAttempts ?? []) as AttemptLite[],
+      undefined,
+      challengeLite
+    );
 
     const { data: attempt, error: attemptErr } = await supabase
       .from("quiz_attempts")
@@ -128,10 +139,14 @@ const QuizzPlay = () => {
     }));
     await supabase.from("attempt_answers").insert(rows);
 
-    const after = computeUnlockedBadges([
-      ...((priorAttempts ?? []) as AttemptLite[]),
-      { id: attempt.id, quiz_id: id, score, total, completed_at: attempt.completed_at },
-    ]);
+    const after = computeUnlockedBadges(
+      [
+        ...((priorAttempts ?? []) as AttemptLite[]),
+        { id: attempt.id, quiz_id: id, score, total, completed_at: attempt.completed_at },
+      ],
+      undefined,
+      challengeLite
+    );
     const newlyUnlocked = BADGES.filter((b) => after.has(b.id) && !before.has(b.id));
 
     setSubmitting(false);
