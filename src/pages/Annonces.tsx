@@ -100,9 +100,34 @@ const Annonces = () => {
           Retrouve ici l'historique complet des annonces de la paroisse.
         </p>
 
+        {/* Recherche texte */}
+        <div className="mt-8 relative">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none"
+            strokeWidth={1.8}
+          />
+          <Input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Rechercher dans les annonces…"
+            className="pl-9 pr-9"
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery("")}
+              aria-label="Effacer la recherche"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-smooth"
+            >
+              <X className="h-4 w-4" strokeWidth={1.8} />
+            </button>
+          )}
+        </div>
+
         {/* Filtres par année (affichés uniquement si plusieurs années) */}
         {years.length > 1 && (
-          <div className="mt-8 flex flex-wrap items-center gap-2">
+          <div className="mt-4 flex flex-wrap items-center gap-2">
             <span className="text-xs uppercase tracking-wider text-muted-foreground mr-1">
               Filtrer :
             </span>
@@ -144,13 +169,16 @@ const Annonces = () => {
           <p className="mt-12 text-center text-sm text-muted-foreground">
             {list.length === 0
               ? "Aucune annonce pour le moment."
-              : "Aucune annonce pour cette année."}
+              : query
+                ? `Aucun résultat pour « ${query} »${year !== "all" ? ` en ${year}` : ""}.`
+                : "Aucune annonce pour cette année."}
           </p>
         ) : (
           <>
             <p className="mt-6 text-xs text-muted-foreground">
               {filtered.length} annonce{filtered.length > 1 ? "s" : ""}
               {year !== "all" && ` en ${year}`}
+              {query && ` pour « ${query} »`}
             </p>
 
             <div className="mt-4 space-y-6">
