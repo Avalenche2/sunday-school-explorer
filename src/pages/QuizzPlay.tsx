@@ -87,7 +87,6 @@ const QuizzPlay = () => {
   const total = questions.length;
   const answeredCount = Object.keys(answers).length;
   const progress = total > 0 ? ((current + 1) / total) * 100 : 0;
-  const allAnswered = total > 0 && answeredCount === total;
 
   const select = (qid: string, idx: number) => {
     setAnswers((prev) => ({ ...prev, [qid]: idx }));
