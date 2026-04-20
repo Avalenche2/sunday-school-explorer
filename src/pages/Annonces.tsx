@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Loader2, Megaphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface Announcement {
   id: string;
@@ -19,9 +21,15 @@ const fmtDate = (iso: string) =>
     year: "numeric",
   });
 
+type YearFilter = number | "all";
+
+const PAGE_SIZE = 10;
+
 const Annonces = () => {
   const [list, setList] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [year, setYear] = useState<YearFilter>("all");
+  const [visible, setVisible] = useState(PAGE_SIZE);
 
   useEffect(() => {
     const load = async () => {
@@ -34,6 +42,29 @@ const Annonces = () => {
     };
     load();
   }, []);
+
+  // Années disponibles (triées du plus récent au plus ancien)
+  const years = useMemo(() => {
+    const set = new Set<number>();
+    list.forEach((a) => set.add(new Date(a.published_at).getFullYear()));
+    return Array.from(set).sort((a, b) => b - a);
+  }, [list]);
+
+  // Filtrage par année
+  const filtered = useMemo(() => {
+    if (year === "all") return list;
+    return list.filter(
+      (a) => new Date(a.published_at).getFullYear() === year
+    );
+  }, [list, year]);
+
+  // Reset pagination quand le filtre change
+  useEffect(() => {
+    setVisible(PAGE_SIZE);
+  }, [year]);
+
+  const shown = filtered.slice(0, visible);
+  const hasMore = visible < filtered.length;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -60,33 +91,90 @@ const Annonces = () => {
           Retrouve ici l'historique complet des annonces de la paroisse.
         </p>
 
+        {/* Filtres par année (affichés uniquement si plusieurs années) */}
+        {years.length > 1 && (
+          <div className="mt-8 flex flex-wrap items-center gap-2">
+            <span className="text-xs uppercase tracking-wider text-muted-foreground mr-1">
+              Filtrer :
+            </span>
+            <button
+              type="button"
+              onClick={() => setYear("all")}
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs font-medium transition-smooth",
+                year === "all"
+                  ? "border-accent bg-accent text-accent-foreground"
+                  : "border-border bg-card text-muted-foreground hover:border-accent/40 hover:text-foreground"
+              )}
+            >
+              Toutes
+            </button>
+            {years.map((y) => (
+              <button
+                key={y}
+                type="button"
+                onClick={() => setYear(y)}
+                className={cn(
+                  "rounded-full border px-3 py-1 text-xs font-medium transition-smooth",
+                  year === y
+                    ? "border-accent bg-accent text-accent-foreground"
+                    : "border-border bg-card text-muted-foreground hover:border-accent/40 hover:text-foreground"
+                )}
+              >
+                {y}
+              </button>
+            ))}
+          </div>
+        )}
+
         {loading ? (
           <div className="mt-12 flex justify-center">
             <Loader2 className="h-5 w-5 animate-spin text-accent" />
           </div>
-        ) : list.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <p className="mt-12 text-center text-sm text-muted-foreground">
-            Aucune annonce pour le moment.
+            {list.length === 0
+              ? "Aucune annonce pour le moment."
+              : "Aucune annonce pour cette année."}
           </p>
         ) : (
-          <div className="mt-10 space-y-6">
-            {list.map((a) => (
-              <article
-                key={a.id}
-                className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-soft transition-smooth hover:shadow-elevated"
-              >
-                <p className="text-xs text-muted-foreground">
-                  {fmtDate(a.published_at)}
-                </p>
-                <h2 className="mt-1 font-serif text-xl md:text-2xl font-semibold">
-                  {a.title}
-                </h2>
-                <p className="mt-3 text-sm md:text-base text-muted-foreground leading-relaxed whitespace-pre-line">
-                  {a.content}
-                </p>
-              </article>
-            ))}
-          </div>
+          <>
+            <p className="mt-6 text-xs text-muted-foreground">
+              {filtered.length} annonce{filtered.length > 1 ? "s" : ""}
+              {year !== "all" && ` en ${year}`}
+            </p>
+
+            <div className="mt-4 space-y-6">
+              {shown.map((a) => (
+                <article
+                  key={a.id}
+                  className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-soft transition-smooth hover:shadow-elevated"
+                >
+                  <p className="text-xs text-muted-foreground">
+                    {fmtDate(a.published_at)}
+                  </p>
+                  <h2 className="mt-1 font-serif text-xl md:text-2xl font-semibold">
+                    {a.title}
+                  </h2>
+                  <p className="mt-3 text-sm md:text-base text-muted-foreground leading-relaxed whitespace-pre-line">
+                    {a.content}
+                  </p>
+                </article>
+              ))}
+            </div>
+
+            {hasMore && (
+              <div className="mt-8 flex justify-center">
+                <Button
+                  variant="outline"
+                  onClick={() => setVisible((v) => v + PAGE_SIZE)}
+                >
+                  Voir plus ({filtered.length - visible} restante
+                  {filtered.length - visible > 1 ? "s" : ""})
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </main>
       <Footer />
