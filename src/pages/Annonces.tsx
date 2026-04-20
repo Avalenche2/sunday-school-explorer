@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useDebounce } from "@/hooks/useDebounce";
 import { cn } from "@/lib/utils";
 
 interface Announcement {
@@ -31,6 +32,7 @@ const Annonces = () => {
   const [loading, setLoading] = useState(true);
   const [year, setYear] = useState<YearFilter>("all");
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebounce(query, 300);
   const [visible, setVisible] = useState(PAGE_SIZE);
 
   useEffect(() => {
@@ -52,9 +54,9 @@ const Annonces = () => {
     return Array.from(set).sort((a, b) => b - a);
   }, [list]);
 
-  // Filtrage combiné : année + recherche texte (titre ou contenu)
+  // Filtrage combiné : année + recherche texte (titre ou contenu) — debouncée
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = debouncedQuery.trim().toLowerCase();
     return list.filter((a) => {
       if (year !== "all" && new Date(a.published_at).getFullYear() !== year) {
         return false;
@@ -65,12 +67,12 @@ const Annonces = () => {
         a.content.toLowerCase().includes(q)
       );
     });
-  }, [list, year, query]);
+  }, [list, year, debouncedQuery]);
 
   // Reset pagination quand un filtre change
   useEffect(() => {
     setVisible(PAGE_SIZE);
-  }, [year, query]);
+  }, [year, debouncedQuery]);
 
   const shown = filtered.slice(0, visible);
   const hasMore = visible < filtered.length;
@@ -169,8 +171,8 @@ const Annonces = () => {
           <p className="mt-12 text-center text-sm text-muted-foreground">
             {list.length === 0
               ? "Aucune annonce pour le moment."
-              : query
-                ? `Aucun résultat pour « ${query} »${year !== "all" ? ` en ${year}` : ""}.`
+              : debouncedQuery
+                ? `Aucun résultat pour « ${debouncedQuery} »${year !== "all" ? ` en ${year}` : ""}.`
                 : "Aucune annonce pour cette année."}
           </p>
         ) : (
@@ -178,7 +180,7 @@ const Annonces = () => {
             <p className="mt-6 text-xs text-muted-foreground">
               {filtered.length} annonce{filtered.length > 1 ? "s" : ""}
               {year !== "all" && ` en ${year}`}
-              {query && ` pour « ${query} »`}
+              {debouncedQuery && ` pour « ${debouncedQuery} »`}
             </p>
 
             <div className="mt-4 space-y-6">

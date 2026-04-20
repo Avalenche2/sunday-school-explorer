@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, BookOpen, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Check, Loader2, Timer } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -35,6 +35,8 @@ const QuizzPlay = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const QUESTION_DURATION = 40; // secondes par question
+
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<string, number>>({});
@@ -42,6 +44,8 @@ const QuizzPlay = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [alreadyDone, setAlreadyDone] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(QUESTION_DURATION);
+  const submittedRef = useRef(false);
 
   useEffect(() => {
     if (!id || !user) return;
@@ -83,14 +87,15 @@ const QuizzPlay = () => {
   const total = questions.length;
   const answeredCount = Object.keys(answers).length;
   const progress = total > 0 ? ((current + 1) / total) * 100 : 0;
-  const allAnswered = total > 0 && answeredCount === total;
 
   const select = (qid: string, idx: number) => {
     setAnswers((prev) => ({ ...prev, [qid]: idx }));
   };
 
-  const handleSubmit = async () => {
-    if (!user || !id || !allAnswered) return;
+  const handleSubmit = useCallback(async () => {
+    if (!user || !id) return;
+    if (submittedRef.current) return;
+    submittedRef.current = true;
     setSubmitting(true);
 
     const score = questions.reduce(
@@ -179,7 +184,31 @@ const QuizzPlay = () => {
     });
 
     navigate(`/quizz/${id}/recap`, { replace: true });
-  };
+  }, [user, id, questions, answers, navigate, toast]);
+
+  // Reset du chronomètre à chaque changement de question
+  useEffect(() => {
+    setTimeLeft(QUESTION_DURATION);
+  }, [current, QUESTION_DURATION]);
+
+  // Décompte 1s par 1s
+  useEffect(() => {
+    if (loading || alreadyDone || submittedRef.current || total === 0) return;
+    if (timeLeft <= 0) return;
+    const id = window.setTimeout(() => setTimeLeft((t) => t - 1), 1000);
+    return () => window.clearTimeout(id);
+  }, [timeLeft, loading, alreadyDone, total]);
+
+  // Au passage à 0 → question suivante (ou soumission auto sur la dernière)
+  useEffect(() => {
+    if (timeLeft !== 0) return;
+    if (loading || alreadyDone || submittedRef.current) return;
+    if (current < total - 1) {
+      setCurrent((c) => Math.min(total - 1, c + 1));
+    } else {
+      handleSubmit();
+    }
+  }, [timeLeft, current, total, loading, alreadyDone, handleSubmit]);
 
   if (!authLoading && !user) return <Navigate to="/connexion" replace />;
 
@@ -260,10 +289,25 @@ const QuizzPlay = () => {
           )}
         </div>
 
-        {/* Progression */}
+        {/* Progression + chronomètre */}
         <div className="mb-6 space-y-2">
-          <div className="flex items-center justify-between text-xs uppercase tracking-wider text-muted-foreground">
+          <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-wider text-muted-foreground">
             <span>Question {current + 1} / {total}</span>
+            <div
+              className={cn(
+                "flex items-center gap-1.5 font-mono tabular-nums px-2.5 py-1 rounded-full border transition-colors",
+                timeLeft <= 10
+                  ? "border-destructive/50 bg-destructive/10 text-destructive animate-pulse"
+                  : timeLeft <= 20
+                    ? "border-accent/40 bg-accent/10 text-accent"
+                    : "border-border bg-card"
+              )}
+              aria-live="polite"
+              aria-label={`Temps restant : ${timeLeft} secondes`}
+            >
+              <Timer className="h-3.5 w-3.5" strokeWidth={1.8} />
+              {String(timeLeft).padStart(2, "0")}s
+            </div>
             <span>{answeredCount} / {total} répondues</span>
           </div>
           <Progress value={progress} className="h-1.5" />
@@ -332,7 +376,7 @@ const QuizzPlay = () => {
           ) : (
             <Button
               onClick={handleSubmit}
-              disabled={!allAnswered || submitting}
+              disabled={submitting}
               className="bg-accent text-accent-foreground hover:bg-accent/90"
             >
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
