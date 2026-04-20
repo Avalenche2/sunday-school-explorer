@@ -17,6 +17,7 @@ import { AdminLayout } from "./components/AdminLayout.tsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
 import AdminQuizzes from "./pages/admin/AdminQuizzes.tsx";
 import AdminQuizEditor from "./pages/admin/AdminQuizEditor.tsx";
+import AdminStats from "./pages/admin/AdminStats.tsx";
 import AdminGospel from "./pages/admin/AdminGospel.tsx";
 import AdminAnnouncements from "./pages/admin/AdminAnnouncements.tsx";
 import AdminSchedules from "./pages/admin/AdminSchedules.tsx";
@@ -44,6 +45,7 @@ const App = () => (
               <Route path="quizz" element={<AdminQuizzes />} />
               <Route path="quizz/nouveau" element={<AdminQuizEditor />} />
               <Route path="quizz/:id" element={<AdminQuizEditor />} />
+              <Route path="statistiques" element={<AdminStats />} />
               <Route path="evangile" element={<AdminGospel />} />
               <Route path="annonces" element={<AdminAnnouncements />} />
               <Route path="horaires" element={<AdminSchedules />} />

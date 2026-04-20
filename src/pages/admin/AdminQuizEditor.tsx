@@ -20,6 +20,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { AdminQuizAttempts } from "./AdminQuizAttempts";
 
 interface QuestionDraft {
   /** id de la BDD si déjà persistée, sinon null */
@@ -428,6 +429,12 @@ const AdminQuizEditor = () => {
           </Card>
         ))}
       </div>
+
+      {!isNew && id && (
+        <div className="pt-6 border-t border-border/60">
+          <AdminQuizAttempts quizId={id} />
+        </div>
+      )}
     </div>
   );
 };

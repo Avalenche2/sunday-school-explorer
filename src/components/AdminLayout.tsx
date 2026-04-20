@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { Link, NavLink, Navigate, Outlet, useLocation } from "react-router-dom";
 import {
+  BarChart3,
   BookOpen,
   CalendarDays,
   LayoutDashboard,
@@ -19,6 +20,7 @@ import { cn } from "@/lib/utils";
 const links = [
   { to: "/admin", label: "Tableau de bord", icon: LayoutDashboard, end: true },
   { to: "/admin/quizz", label: "Quizz", icon: ScrollText },
+  { to: "/admin/statistiques", label: "Statistiques", icon: BarChart3 },
   { to: "/admin/evangile", label: "Évangile du jour", icon: BookOpen },
   { to: "/admin/annonces", label: "Annonces", icon: Megaphone },
   { to: "/admin/horaires", label: "Horaires", icon: CalendarDays },
