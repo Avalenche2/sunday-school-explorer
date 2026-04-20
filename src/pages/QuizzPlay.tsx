@@ -290,10 +290,25 @@ const QuizzPlay = () => {
           )}
         </div>
 
-        {/* Progression */}
+        {/* Progression + chronomètre */}
         <div className="mb-6 space-y-2">
-          <div className="flex items-center justify-between text-xs uppercase tracking-wider text-muted-foreground">
+          <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-wider text-muted-foreground">
             <span>Question {current + 1} / {total}</span>
+            <div
+              className={cn(
+                "flex items-center gap-1.5 font-mono tabular-nums px-2.5 py-1 rounded-full border transition-colors",
+                timeLeft <= 10
+                  ? "border-destructive/50 bg-destructive/10 text-destructive animate-pulse"
+                  : timeLeft <= 20
+                    ? "border-accent/40 bg-accent/10 text-accent"
+                    : "border-border bg-card"
+              )}
+              aria-live="polite"
+              aria-label={`Temps restant : ${timeLeft} secondes`}
+            >
+              <Timer className="h-3.5 w-3.5" strokeWidth={1.8} />
+              {String(timeLeft).padStart(2, "0")}s
+            </div>
             <span>{answeredCount} / {total} répondues</span>
           </div>
           <Progress value={progress} className="h-1.5" />
