@@ -11,9 +11,18 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { Activity, Award, Loader2, Target, TrendingUp, Users } from "lucide-react";
+import { Activity, Award, Download, Loader2, Target, TrendingUp, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
 interface Attempt {
   id: string;
@@ -56,12 +65,48 @@ const fmtWeek = (d: Date) =>
 const fmtMonth = (d: Date) =>
   d.toLocaleDateString("fr-FR", { month: "short", year: "2-digit" });
 
+type PeriodKey = "7d" | "30d" | "90d" | "month" | "all";
+
+const periodOptions: { value: PeriodKey; label: string }[] = [
+  { value: "7d", label: "7 derniers jours" },
+  { value: "30d", label: "30 derniers jours" },
+  { value: "90d", label: "90 derniers jours" },
+  { value: "month", label: "Mois en cours" },
+  { value: "all", label: "Toute la période" },
+];
+
+const periodStart = (key: PeriodKey): Date | null => {
+  const now = new Date();
+  switch (key) {
+    case "7d":
+      return new Date(now.getTime() - 7 * 24 * 3600 * 1000);
+    case "30d":
+      return new Date(now.getTime() - 30 * 24 * 3600 * 1000);
+    case "90d":
+      return new Date(now.getTime() - 90 * 24 * 3600 * 1000);
+    case "month":
+      return new Date(now.getFullYear(), now.getMonth(), 1);
+    case "all":
+    default:
+      return null;
+  }
+};
+
+const csvEscape = (val: string) => {
+  if (/[",\n;]/.test(val)) return `"${val.replace(/"/g, '""')}"`;
+  return val;
+};
+
 const AdminStats = () => {
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [profiles, setProfiles] = useState<Map<string, string>>(new Map());
+  const [exportPeriod, setExportPeriod] = useState<PeriodKey>("30d");
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const load = async () => {
