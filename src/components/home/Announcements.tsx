@@ -23,9 +23,11 @@ export const Announcements = () => {
 
   useEffect(() => {
     const load = async () => {
+      const nowIso = new Date().toISOString();
       const { data } = await supabase
         .from("announcements")
         .select("id, title, content, published_at")
+        .lte("published_at", nowIso)
         .order("published_at", { ascending: false })
         .limit(5);
       setList((data ?? []) as Announcement[]);
