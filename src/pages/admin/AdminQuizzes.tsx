@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarClock, CheckCircle2, Eye, EyeOff, Pencil, Plus, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -27,9 +28,12 @@ interface QuizRow {
   bible_reference: string | null;
 }
 
+type Filter = "all" | "published" | "scheduled" | "draft";
+
 const AdminQuizzes = () => {
   const [quizzes, setQuizzes] = useState<QuizRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<Filter>("all");
 
   const load = async () => {
     setLoading(true);
