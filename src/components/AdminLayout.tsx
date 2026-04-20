@@ -9,6 +9,7 @@ import {
   Megaphone,
   ScrollText,
   ShieldCheck,
+  Sun,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Header } from "@/components/Header";
@@ -20,6 +21,7 @@ import { cn } from "@/lib/utils";
 const links = [
   { to: "/admin", label: "Tableau de bord", icon: LayoutDashboard, end: true },
   { to: "/admin/quizz", label: "Quizz", icon: ScrollText },
+  { to: "/admin/defi", label: "Défi du jour", icon: Sun },
   { to: "/admin/statistiques", label: "Statistiques", icon: BarChart3 },
   { to: "/admin/evangile", label: "Évangile du jour", icon: BookOpen },
   { to: "/admin/annonces", label: "Annonces", icon: Megaphone },

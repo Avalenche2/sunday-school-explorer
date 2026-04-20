@@ -6,6 +6,7 @@ import { TopJuniors } from "@/components/home/TopJuniors";
 import { Schedules } from "@/components/home/Schedules";
 import { Announcements } from "@/components/home/Announcements";
 import { RecentQuizzes } from "@/components/home/RecentQuizzes";
+import { DailyChallenge } from "@/components/home/DailyChallenge";
 
 const Index = () => {
   return (
@@ -32,8 +33,9 @@ const Index = () => {
           </div>
 
           <div className="grid gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 space-y-6">
               <GospelOfTheDay />
+              <DailyChallenge />
             </div>
             <div>
               <QuizzOfTheWeek />
