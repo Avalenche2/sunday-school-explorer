@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CheckCircle2, Eye, EyeOff, Pencil, Plus, Trash2 } from "lucide-react";
+import { CalendarClock, CheckCircle2, Eye, EyeOff, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -83,13 +83,20 @@ const AdminQuizzes = () => {
         </Card>
       ) : (
         <div className="space-y-2">
-          {quizzes.map((q) => (
+          {quizzes.map((q) => {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const isScheduled = q.is_published && q.publish_date > todayStr;
+            return (
             <Card key={q.id} className="shadow-soft">
               <CardContent className="p-4 flex items-center gap-4 flex-wrap">
                 <div className="flex-1 min-w-[200px]">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-medium">{q.title}</p>
-                    {q.is_published ? (
+                    {isScheduled ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-gold font-semibold">
+                        <CalendarClock className="h-3 w-3" /> programmé
+                      </span>
+                    ) : q.is_published ? (
                       <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-accent font-semibold">
                         <CheckCircle2 className="h-3 w-3" /> publié
                       </span>
@@ -100,6 +107,7 @@ const AdminQuizzes = () => {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">
+                    {isScheduled ? "Visible le " : ""}
                     {format(new Date(q.publish_date), "d MMMM yyyy", { locale: fr })}
                     {q.bible_reference && ` · ${q.bible_reference}`}
                   </p>
@@ -137,7 +145,8 @@ const AdminQuizzes = () => {
                 </div>
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

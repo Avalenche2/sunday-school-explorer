@@ -50,6 +50,36 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_role_revocations: {
+        Row: {
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          revoked_at: string
+          revoked_by: string | null
+          user_id: string
+        }
+        Insert: {
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          revoked_at?: string
+          revoked_by?: string | null
+          user_id: string
+        }
+        Update: {
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          revoked_at?: string
+          revoked_by?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       announcements: {
         Row: {
           content: string
