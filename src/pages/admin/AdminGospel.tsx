@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { BookOpen, Loader2, Save } from "lucide-react";
+import { BookOpen, CalendarClock, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -121,9 +121,26 @@ const AdminGospel = () => {
               rows={3}
             />
           </div>
+          {date > today() && (
+            <div className="rounded-lg border border-gold/40 bg-gold/5 p-3 text-xs text-foreground flex items-start gap-2">
+              <CalendarClock className="h-4 w-4 text-gold shrink-0 mt-0.5" strokeWidth={1.8} />
+              <div>
+                <strong className="text-gold">Évangile programmé.</strong> Il sera visible par les
+                enfants à partir du{" "}
+                <strong>
+                  {new Date(`${date}T12:00:00`).toLocaleDateString("fr-FR", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </strong>
+                .
+              </div>
+            </div>
+          )}
           <Button onClick={handleSave} disabled={saving}>
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            {existingId ? "Mettre à jour" : "Publier"}
+            {existingId ? "Mettre à jour" : date > today() ? "Programmer" : "Publier"}
           </Button>
         </CardContent>
       </Card>
@@ -132,7 +149,9 @@ const AdminGospel = () => {
         <div>
           <h3 className="font-serif text-lg font-semibold mb-3">Évangiles récents</h3>
           <div className="space-y-2">
-            {recent.map((r) => (
+            {recent.map((r) => {
+              const scheduled = r.gospel_date > today();
+              return (
               <Card
                 key={r.id}
                 className="shadow-soft cursor-pointer hover:shadow-elevated transition-shadow"
@@ -141,15 +160,23 @@ const AdminGospel = () => {
                 <CardContent className="p-4 flex items-start gap-3">
                   <BookOpen className="h-4 w-4 text-accent mt-1 shrink-0" strokeWidth={1.8} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs uppercase tracking-wider text-accent font-semibold">
-                      {format(new Date(r.gospel_date), "d MMMM yyyy", { locale: fr })}
-                    </p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-xs uppercase tracking-wider text-accent font-semibold">
+                        {format(new Date(r.gospel_date), "d MMMM yyyy", { locale: fr })}
+                      </p>
+                      {scheduled && (
+                        <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-gold font-semibold">
+                          <CalendarClock className="h-3 w-3" /> programmé
+                        </span>
+                      )}
+                    </div>
                     <p className="font-medium mt-0.5">{r.reference}</p>
                     <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{r.verse}</p>
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
