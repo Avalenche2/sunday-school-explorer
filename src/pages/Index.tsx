@@ -8,15 +8,31 @@ import { Announcements } from "@/components/home/Announcements";
 import { RecentQuizzes } from "@/components/home/RecentQuizzes";
 import { DailyChallenge } from "@/components/home/DailyChallenge";
 
+/**
+ * Wrapper qui se replie automatiquement quand son enfant ne rend rien.
+ * Repose sur `:has()` (CSS) — large support sur navigateurs modernes.
+ */
+const Cell = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
+  <div className={`[&:not(:has(*))]:hidden ${className}`}>{children}</div>
+);
+
+const Row = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
+  <section
+    className={`container py-6 md:py-10 [&:not(:has(*>*))]:hidden ${className}`}
+  >
+    {children}
+  </section>
+);
+
 const Index = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
 
       <main className="flex-1">
-        {/* Hero / Évangile */}
-        <section className="container py-8 md:py-12">
-          <div className="mb-8 md:mb-10 text-center max-w-2xl mx-auto animate-fade-in-up">
+        {/* Bienvenue */}
+        <section className="container pt-8 md:pt-12 pb-2">
+          <div className="text-center max-w-2xl mx-auto animate-fade-in-up">
             <p className="text-xs uppercase tracking-[0.3em] text-accent font-medium">
               Bienvenue
             </p>
@@ -31,33 +47,44 @@ const Index = () => {
               <div className="gold-divider" />
             </div>
           </div>
+        </section>
 
-          <div className="grid gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2 space-y-6">
+        {/* Hero / Évangile + défi + quizz vedette */}
+        <Row className="pt-6 md:pt-8">
+          <div className="grid gap-6 lg:grid-cols-3 [&:not(:has(>*>*))]:hidden">
+            <Cell className="lg:col-span-2 space-y-6">
               <GospelOfTheDay />
               <DailyChallenge />
-            </div>
-            <div>
+            </Cell>
+            <Cell>
               <QuizzOfTheWeek />
-            </div>
+            </Cell>
           </div>
-        </section>
+        </Row>
 
         {/* Top juniors + Horaires */}
-        <section className="container py-6 md:py-10">
+        <Row>
           <div className="grid gap-6 md:grid-cols-2">
-            <TopJuniors />
-            <Schedules />
+            <Cell>
+              <TopJuniors />
+            </Cell>
+            <Cell>
+              <Schedules />
+            </Cell>
           </div>
-        </section>
+        </Row>
 
         {/* Annonces + Historique */}
-        <section className="container py-6 md:py-10 pb-16">
+        <Row className="pb-16">
           <div className="grid gap-6 md:grid-cols-2">
-            <Announcements />
-            <RecentQuizzes />
+            <Cell>
+              <Announcements />
+            </Cell>
+            <Cell>
+              <RecentQuizzes />
+            </Cell>
           </div>
-        </section>
+        </Row>
       </main>
 
       <Footer />
