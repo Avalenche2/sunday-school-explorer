@@ -93,8 +93,10 @@ const QuizzPlay = () => {
     setAnswers((prev) => ({ ...prev, [qid]: idx }));
   };
 
-  const handleSubmit = async () => {
-    if (!user || !id || !allAnswered) return;
+  const handleSubmit = useCallback(async () => {
+    if (!user || !id) return;
+    if (submittedRef.current) return;
+    submittedRef.current = true;
     setSubmitting(true);
 
     const score = questions.reduce(
