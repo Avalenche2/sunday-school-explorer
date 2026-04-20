@@ -4,19 +4,23 @@ import {
   BarChart3,
   BookOpen,
   CalendarDays,
+  Crown,
   LayoutDashboard,
   Loader2,
   Megaphone,
   ScrollText,
   ShieldCheck,
   Sun,
+  UserCog,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { isSuperAdmin } from "@/lib/superAdmin";
 
 const links = [
   { to: "/admin", label: "Tableau de bord", icon: LayoutDashboard, end: true },
@@ -26,6 +30,7 @@ const links = [
   { to: "/admin/evangile", label: "Évangile du jour", icon: BookOpen },
   { to: "/admin/annonces", label: "Annonces", icon: Megaphone },
   { to: "/admin/horaires", label: "Horaires", icon: CalendarDays },
+  { to: "/admin/moniteurs", label: "Moniteurs", icon: UserCog },
 ];
 
 const Shell = ({ children }: { children: ReactNode }) => (
@@ -75,13 +80,23 @@ export const AdminLayout = () => {
     );
   }
 
+  const superAdm = isSuperAdmin(user.email);
+
   return (
     <Shell>
       <section className="container py-8 md:py-12">
         <div className="mb-8">
-          <p className="text-xs uppercase tracking-[0.3em] text-accent font-medium">
-            Espace moniteur
-          </p>
+          <div className="flex items-center gap-3 flex-wrap">
+            <p className="text-xs uppercase tracking-[0.3em] text-accent font-medium">
+              Espace moniteur
+            </p>
+            {superAdm && (
+              <Badge className="bg-accent text-accent-foreground hover:bg-accent gap-1 h-5 px-2 text-[10px] uppercase tracking-wider">
+                <Crown className="h-3 w-3" strokeWidth={2} />
+                Super admin
+              </Badge>
+            )}
+          </div>
           <h1 className="mt-2 font-serif text-3xl md:text-4xl font-semibold leading-[1.1]">
             Administration
           </h1>

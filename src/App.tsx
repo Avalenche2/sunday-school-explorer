@@ -25,6 +25,7 @@ import AdminSchedules from "./pages/admin/AdminSchedules.tsx";
 import AdminDailyChallenge from "./pages/admin/AdminDailyChallenge.tsx";
 import AdminConnexion from "./pages/admin/AdminConnexion.tsx";
 import AdminInscription from "./pages/admin/AdminInscription.tsx";
+import AdminMoniteurs from "./pages/admin/AdminMoniteurs.tsx";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +58,7 @@ const App = () => (
               <Route path="annonces" element={<AdminAnnouncements />} />
               <Route path="horaires" element={<AdminSchedules />} />
               <Route path="defi" element={<AdminDailyChallenge />} />
+              <Route path="moniteurs" element={<AdminMoniteurs />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
