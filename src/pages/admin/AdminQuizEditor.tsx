@@ -331,6 +331,20 @@ const AdminQuizEditor = () => {
                 Publié (visible par les enfants)
               </Label>
             </div>
+            {isPublished && publishDate > today() && (
+              <div className="md:col-span-2 rounded-lg border border-gold/40 bg-gold/5 p-3 text-xs text-foreground">
+                <strong className="text-gold">Publication programmée.</strong> Ce quizz sera
+                automatiquement visible par les enfants à partir du{" "}
+                <strong>
+                  {new Date(publishDate).toLocaleDateString("fr-FR", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </strong>
+                .
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
