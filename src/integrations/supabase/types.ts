@@ -244,6 +244,33 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_quotes: {
+        Row: {
+          commentary: string | null
+          created_at: string
+          id: string
+          quote: string
+          quote_date: string
+          reference: string
+        }
+        Insert: {
+          commentary?: string | null
+          created_at?: string
+          id?: string
+          quote: string
+          quote_date?: string
+          reference: string
+        }
+        Update: {
+          commentary?: string | null
+          created_at?: string
+          id?: string
+          quote?: string
+          quote_date?: string
+          reference?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age: number | null
