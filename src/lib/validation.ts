@@ -32,5 +32,16 @@ export const signInSchema = z.object({
   password: z.string().min(1, "Mot de passe requis").max(72),
 });
 
+export const profileUpdateSchema = z.object({
+  firstName: z.string().trim().min(1, "Prénom requis").max(50, "Prénom trop long"),
+  lastName: z.string().trim().min(1, "Nom requis").max(50, "Nom trop long"),
+  age: z
+    .number({ message: "Âge requis" })
+    .int()
+    .min(4, "Âge minimum : 4 ans")
+    .max(18, "Âge maximum : 18 ans"),
+});
+
 export type SignUpInput = z.infer<typeof signUpSchema>;
 export type SignInInput = z.infer<typeof signInSchema>;
+export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
