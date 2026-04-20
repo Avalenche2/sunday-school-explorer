@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Loader2, Megaphone } from "lucide-react";
+import { ArrowLeft, Loader2, Megaphone, Search, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 interface Announcement {
@@ -29,6 +30,7 @@ const Annonces = () => {
   const [list, setList] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [year, setYear] = useState<YearFilter>("all");
+  const [query, setQuery] = useState("");
   const [visible, setVisible] = useState(PAGE_SIZE);
 
   useEffect(() => {
@@ -50,18 +52,25 @@ const Annonces = () => {
     return Array.from(set).sort((a, b) => b - a);
   }, [list]);
 
-  // Filtrage par année
+  // Filtrage combiné : année + recherche texte (titre ou contenu)
   const filtered = useMemo(() => {
-    if (year === "all") return list;
-    return list.filter(
-      (a) => new Date(a.published_at).getFullYear() === year
-    );
-  }, [list, year]);
+    const q = query.trim().toLowerCase();
+    return list.filter((a) => {
+      if (year !== "all" && new Date(a.published_at).getFullYear() !== year) {
+        return false;
+      }
+      if (!q) return true;
+      return (
+        a.title.toLowerCase().includes(q) ||
+        a.content.toLowerCase().includes(q)
+      );
+    });
+  }, [list, year, query]);
 
-  // Reset pagination quand le filtre change
+  // Reset pagination quand un filtre change
   useEffect(() => {
     setVisible(PAGE_SIZE);
-  }, [year]);
+  }, [year, query]);
 
   const shown = filtered.slice(0, visible);
   const hasMore = visible < filtered.length;
@@ -91,9 +100,34 @@ const Annonces = () => {
           Retrouve ici l'historique complet des annonces de la paroisse.
         </p>
 
+        {/* Recherche texte */}
+        <div className="mt-8 relative">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none"
+            strokeWidth={1.8}
+          />
+          <Input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Rechercher dans les annonces…"
+            className="pl-9 pr-9"
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery("")}
+              aria-label="Effacer la recherche"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-smooth"
+            >
+              <X className="h-4 w-4" strokeWidth={1.8} />
+            </button>
+          )}
+        </div>
+
         {/* Filtres par année (affichés uniquement si plusieurs années) */}
         {years.length > 1 && (
-          <div className="mt-8 flex flex-wrap items-center gap-2">
+          <div className="mt-4 flex flex-wrap items-center gap-2">
             <span className="text-xs uppercase tracking-wider text-muted-foreground mr-1">
               Filtrer :
             </span>
@@ -135,13 +169,16 @@ const Annonces = () => {
           <p className="mt-12 text-center text-sm text-muted-foreground">
             {list.length === 0
               ? "Aucune annonce pour le moment."
-              : "Aucune annonce pour cette année."}
+              : query
+                ? `Aucun résultat pour « ${query} »${year !== "all" ? ` en ${year}` : ""}.`
+                : "Aucune annonce pour cette année."}
           </p>
         ) : (
           <>
             <p className="mt-6 text-xs text-muted-foreground">
               {filtered.length} annonce{filtered.length > 1 ? "s" : ""}
               {year !== "all" && ` en ${year}`}
+              {query && ` pour « ${query} »`}
             </p>
 
             <div className="mt-4 space-y-6">
