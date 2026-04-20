@@ -54,10 +54,12 @@ const Quizz = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      const today = new Date().toISOString().slice(0, 10);
       const { data: q } = await supabase
         .from("quizzes")
         .select("id, title, description, publish_date, bible_reference, is_published")
         .eq("is_published", true)
+        .lte("publish_date", today)
         .order("publish_date", { ascending: false });
 
       setQuizzes(q ?? []);

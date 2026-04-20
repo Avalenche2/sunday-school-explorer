@@ -22,11 +22,13 @@ export const RecentQuizzes = () => {
 
   useEffect(() => {
     const load = async () => {
+      const today = new Date().toISOString().slice(0, 10);
       const [{ data: quizzes }, { data: attempts }] = await Promise.all([
         supabase
           .from("quizzes")
           .select("id, title, publish_date")
           .eq("is_published", true)
+          .lte("publish_date", today)
           .order("publish_date", { ascending: false })
           .limit(5),
         supabase.from("quiz_attempts").select("quiz_id, user_id"),
