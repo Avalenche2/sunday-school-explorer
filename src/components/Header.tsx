@@ -14,10 +14,14 @@ const baseNavItems = [
 
 export const Header = () => {
   const [open, setOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
   const { toast } = useToast();
   const navItems = user
-    ? [...baseNavItems, { to: "/profil", label: "Mon profil" }]
+    ? [
+        ...baseNavItems,
+        { to: "/profil", label: "Mon profil" },
+        ...(isAdmin ? [{ to: "/admin", label: "Admin" }] : []),
+      ]
     : baseNavItems;
 
   const handleSignOut = async () => {

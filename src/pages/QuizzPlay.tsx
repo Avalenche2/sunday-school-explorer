@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, BookOpen, Check, Loader2 } from "lucide-react";
+import { toast as sonnerToast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -10,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { BADGES, computeUnlockedBadges, type AttemptLite } from "@/lib/badges";
 
 interface Quiz {
   id: string;
@@ -96,10 +98,16 @@ const QuizzPlay = () => {
       0
     );
 
+    const { data: priorAttempts } = await supabase
+      .from("quiz_attempts")
+      .select("id, quiz_id, score, total, completed_at")
+      .eq("user_id", user.id);
+    const before = computeUnlockedBadges((priorAttempts ?? []) as AttemptLite[]);
+
     const { data: attempt, error: attemptErr } = await supabase
       .from("quiz_attempts")
       .insert({ user_id: user.id, quiz_id: id, score, total })
-      .select("id")
+      .select("id, completed_at")
       .single();
 
     if (attemptErr || !attempt) {
@@ -120,8 +128,41 @@ const QuizzPlay = () => {
     }));
     await supabase.from("attempt_answers").insert(rows);
 
+    const after = computeUnlockedBadges([
+      ...((priorAttempts ?? []) as AttemptLite[]),
+      { id: attempt.id, quiz_id: id, score, total, completed_at: attempt.completed_at },
+    ]);
+    const newlyUnlocked = BADGES.filter((b) => after.has(b.id) && !before.has(b.id));
+
     setSubmitting(false);
     toast({ title: "Bravo !", description: `Score : ${score} / ${total}` });
+
+    newlyUnlocked.forEach((badge, i) => {
+      setTimeout(() => {
+        const Icon = badge.icon;
+        sonnerToast.custom(
+          (t) => (
+            <div
+              className="flex items-center gap-3 rounded-xl border border-accent/40 bg-card p-4 shadow-gold animate-fade-in-up min-w-[280px] cursor-pointer"
+              onClick={() => sonnerToast.dismiss(t)}
+            >
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-gold text-gold-foreground shrink-0">
+                <Icon className="h-5 w-5" strokeWidth={1.8} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] uppercase tracking-wider text-accent font-semibold">
+                  Nouveau badge
+                </p>
+                <p className="font-medium leading-tight mt-0.5">{badge.name}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{badge.description}</p>
+              </div>
+            </div>
+          ),
+          { duration: 5000 }
+        );
+      }, 400 + i * 600);
+    });
+
     navigate(`/quizz/${id}/recap`, { replace: true });
   };
 

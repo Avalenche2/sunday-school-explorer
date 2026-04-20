@@ -20,6 +20,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { BadgeGrid } from "@/components/BadgeGrid";
+import { EditProfileDialog } from "@/components/EditProfileDialog";
 import {
   BADGES,
   computeUnlockedBadges,
@@ -160,6 +161,22 @@ const Profil = () => {
                         <Trophy className="h-3.5 w-3.5" strokeWidth={1.8} />
                         {monthlyRank}{monthlyRank === 1 ? "er" : "ème"} ce mois-ci
                       </div>
+                    )}
+                    {profile && (
+                      <EditProfileDialog
+                        initial={{
+                          firstName: profile.first_name,
+                          lastName: profile.last_name,
+                          age: profile.age,
+                        }}
+                        onSaved={(next) =>
+                          setProfile({
+                            first_name: next.firstName,
+                            last_name: next.lastName,
+                            age: next.age,
+                          })
+                        }
+                      />
                     )}
                   </CardContent>
                 </Card>
