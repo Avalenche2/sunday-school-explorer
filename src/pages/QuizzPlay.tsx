@@ -93,30 +93,6 @@ const QuizzPlay = () => {
     setAnswers((prev) => ({ ...prev, [qid]: idx }));
   };
 
-  // Reset du chronomètre à chaque changement de question
-  useEffect(() => {
-    setTimeLeft(QUESTION_DURATION);
-  }, [current, QUESTION_DURATION]);
-
-  // Décompte 1s par 1s ; au passage à 0 → question suivante (ou soumission auto)
-  useEffect(() => {
-    if (loading || alreadyDone || submittedRef.current || total === 0) return;
-    if (timeLeft <= 0) return;
-    const id = window.setTimeout(() => setTimeLeft((t) => t - 1), 1000);
-    return () => window.clearTimeout(id);
-  }, [timeLeft, loading, alreadyDone, total]);
-
-  useEffect(() => {
-    if (timeLeft !== 0) return;
-    if (loading || alreadyDone || submittedRef.current) return;
-    if (current < total - 1) {
-      setCurrent((c) => Math.min(total - 1, c + 1));
-    } else {
-      // Dernière question → soumission auto (réponses manquantes = fausses)
-      handleSubmit();
-    }
-  }, [timeLeft, current, total, loading, alreadyDone, handleSubmit]);
-
   const handleSubmit = useCallback(async () => {
     if (!user || !id) return;
     if (submittedRef.current) return;
