@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Loader2, Megaphone } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowRight, Loader2, Megaphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Announcement {
@@ -67,6 +68,14 @@ export const Announcements = () => {
           </article>
         ))}
       </div>
+
+      <Link
+        to="/annonces"
+        className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:gap-2 transition-all"
+      >
+        Voir toutes les annonces
+        <ArrowRight className="h-4 w-4" strokeWidth={1.8} />
+      </Link>
     </section>
   );
 };
