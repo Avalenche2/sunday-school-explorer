@@ -1,13 +1,66 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, History } from "lucide-react";
+import { ArrowRight, History, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
-const recent = [
-  { date: "06 avril", title: "Les miracles de Jésus", participants: 24 },
-  { date: "30 mars", title: "Le Sermon sur la montagne", participants: 22 },
-  { date: "23 mars", title: "Les apôtres", participants: 27 },
-];
+interface RecentQuiz {
+  id: string;
+  title: string;
+  publish_date: string;
+  participants: number;
+}
+
+const fmtShortDate = (iso: string) =>
+  new Date(iso).toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "short",
+  });
 
 export const RecentQuizzes = () => {
+  const [list, setList] = useState<RecentQuiz[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const [{ data: quizzes }, { data: attempts }] = await Promise.all([
+        supabase
+          .from("quizzes")
+          .select("id, title, publish_date")
+          .eq("is_published", true)
+          .order("publish_date", { ascending: false })
+          .limit(5),
+        supabase.from("quiz_attempts").select("quiz_id, user_id"),
+      ]);
+
+      // Compte des participants uniques par quiz
+      const uniques = new Map<string, Set<string>>();
+      (attempts ?? []).forEach((a: { quiz_id: string; user_id: string }) => {
+        const set = uniques.get(a.quiz_id) ?? new Set<string>();
+        set.add(a.user_id);
+        uniques.set(a.quiz_id, set);
+      });
+
+      setList(
+        ((quizzes ?? []) as { id: string; title: string; publish_date: string }[]).map((q) => ({
+          ...q,
+          participants: uniques.get(q.id)?.size ?? 0,
+        }))
+      );
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="rounded-2xl border border-border bg-card p-8 shadow-soft flex justify-center">
+        <Loader2 className="h-5 w-5 animate-spin text-accent" />
+      </section>
+    );
+  }
+
+  if (list.length === 0) return null;
+
   return (
     <section className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-soft">
       <div className="flex items-center justify-between gap-3">
@@ -31,21 +84,23 @@ export const RecentQuizzes = () => {
       </div>
 
       <div className="mt-6 divide-y divide-border/60">
-        {recent.map((q, i) => (
+        {list.map((q) => (
           <Link
-            key={i}
-            to="/quizz"
+            key={q.id}
+            to={`/quizz/${q.id}`}
             className="flex items-center gap-4 py-3 group transition-smooth hover:pl-2"
           >
-            <span className="text-xs font-medium text-muted-foreground w-16">
-              {q.date}
+            <span className="text-xs font-medium text-muted-foreground w-16 shrink-0">
+              {fmtShortDate(q.publish_date)}
             </span>
-            <span className="flex-1 font-medium group-hover:text-accent transition-colors">
+            <span className="flex-1 font-medium group-hover:text-accent transition-colors truncate">
               {q.title}
             </span>
-            <span className="text-xs text-muted-foreground">
-              {q.participants} juniors
-            </span>
+            {q.participants > 0 && (
+              <span className="text-xs text-muted-foreground shrink-0">
+                {q.participants} junior{q.participants > 1 ? "s" : ""}
+              </span>
+            )}
           </Link>
         ))}
       </div>

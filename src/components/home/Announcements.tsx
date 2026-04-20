@@ -1,24 +1,48 @@
-import { Megaphone } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Loader2, Megaphone } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
-const announcements = [
-  {
-    title: "Sortie du groupe junior",
-    date: "20 avril 2026",
-    body: "Rendez-vous à 14h devant l'église pour notre après-midi pique-nique et jeux bibliques.",
-  },
-  {
-    title: "Concours de mémorisation",
-    date: "27 avril 2026",
-    body: "Apprends 5 versets et viens les réciter — de jolis prix à gagner !",
-  },
-  {
-    title: "Nouveau cycle d'enseignement",
-    date: "1er mai 2026",
-    body: "Nous démarrons une série sur la vie de Joseph. Prépare ta Bible !",
-  },
-];
+interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  published_at: string;
+}
+
+const fmtDate = (iso: string) =>
+  new Date(iso).toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
 export const Announcements = () => {
+  const [list, setList] = useState<Announcement[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase
+        .from("announcements")
+        .select("id, title, content, published_at")
+        .order("published_at", { ascending: false })
+        .limit(5);
+      setList((data ?? []) as Announcement[]);
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="rounded-2xl border border-border bg-card p-8 shadow-soft flex justify-center">
+        <Loader2 className="h-5 w-5 animate-spin text-accent" />
+      </section>
+    );
+  }
+
+  if (list.length === 0) return null;
+
   return (
     <section className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-soft">
       <div className="flex items-center gap-2 text-accent">
@@ -30,15 +54,15 @@ export const Announcements = () => {
       <h2 className="mt-2 font-serif text-2xl font-semibold">À venir</h2>
 
       <div className="mt-6 space-y-4">
-        {announcements.map((a, i) => (
+        {list.map((a) => (
           <article
-            key={i}
+            key={a.id}
             className="group relative pl-5 border-l-2 border-accent/30 transition-smooth hover:border-accent"
           >
-            <p className="text-xs text-muted-foreground">{a.date}</p>
+            <p className="text-xs text-muted-foreground">{fmtDate(a.published_at)}</p>
             <h3 className="mt-1 font-serif text-lg font-semibold">{a.title}</h3>
-            <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
-              {a.body}
+            <p className="mt-1 text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+              {a.content}
             </p>
           </article>
         ))}

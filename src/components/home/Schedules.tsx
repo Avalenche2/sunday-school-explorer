@@ -1,11 +1,42 @@
-import { CalendarClock, MapPin } from "lucide-react";
+import { useEffect, useState } from "react";
+import { CalendarClock, Loader2, MapPin } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
-const schedules = [
-  { day: "Dimanche", time: "9h00 — 10h30", group: "Tous les enfants", location: "Salle principale" },
-  { day: "Mercredi", time: "16h00 — 17h00", group: "Étude biblique juniors", location: "Salle 2" },
-];
+interface Schedule {
+  id: string;
+  day_of_week: string;
+  time: string;
+  description: string | null;
+  location: string | null;
+  position: number;
+}
 
 export const Schedules = () => {
+  const [list, setList] = useState<Schedule[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase
+        .from("schedules")
+        .select("*")
+        .order("position", { ascending: true });
+      setList((data ?? []) as Schedule[]);
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="rounded-2xl border border-border bg-card p-8 shadow-soft flex justify-center">
+        <Loader2 className="h-5 w-5 animate-spin text-accent" />
+      </section>
+    );
+  }
+
+  if (list.length === 0) return null;
+
   return (
     <section className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-soft">
       <div className="flex items-center gap-2 text-accent">
@@ -19,20 +50,24 @@ export const Schedules = () => {
       </h2>
 
       <div className="mt-6 space-y-3">
-        {schedules.map((s, i) => (
+        {list.map((s) => (
           <div
-            key={i}
+            key={s.id}
             className="rounded-xl border border-border/60 bg-background/40 p-4 transition-smooth hover:border-accent/40"
           >
-            <div className="flex items-baseline justify-between gap-3">
-              <p className="font-serif text-lg font-semibold">{s.day}</p>
+            <div className="flex items-baseline justify-between gap-3 flex-wrap">
+              <p className="font-serif text-lg font-semibold">{s.day_of_week}</p>
               <p className="text-sm font-medium text-accent">{s.time}</p>
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">{s.group}</p>
-            <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-              <MapPin className="h-3 w-3" strokeWidth={1.5} />
-              {s.location}
-            </p>
+            {s.description && (
+              <p className="mt-1 text-sm text-muted-foreground">{s.description}</p>
+            )}
+            {s.location && (
+              <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <MapPin className="h-3 w-3" strokeWidth={1.5} />
+                {s.location}
+              </p>
+            )}
           </div>
         ))}
       </div>
