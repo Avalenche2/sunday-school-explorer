@@ -2,6 +2,7 @@ import { Link, NavLink } from "react-router-dom";
 import { BookOpen, LogOut, Menu, User as UserIcon, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -59,7 +60,7 @@ export const Header = () => {
           </span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden lg:flex items-center gap-8">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -79,7 +80,7 @@ export const Header = () => {
           ))}
         </nav>
 
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden lg:flex items-center gap-3">
           {user ? (
             <>
               <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -104,17 +105,35 @@ export const Header = () => {
         </div>
 
         <button
-          className="md:hidden p-2 -mr-2"
-          onClick={() => setOpen(!open)}
-          aria-label="Menu"
+          className="lg:hidden p-2 -mr-2"
+          onClick={() => setOpen(true)}
+          aria-label="Ouvrir le menu"
         >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          <Menu className="h-5 w-5" />
         </button>
       </div>
 
-      {open && (
-        <div className="md:hidden border-t border-border/60 bg-background">
-          <div className="container py-4 flex flex-col gap-1">
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="right" className="w-80 sm:w-96 p-0 flex flex-col">
+          <SheetHeader className="border-b border-border/60 px-6 py-5">
+            <SheetTitle className="flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-night shadow-soft">
+                <BookOpen className="h-4 w-4 text-gold" strokeWidth={1.5} />
+              </span>
+              <span className="font-serif text-base font-semibold">
+                École du Dimanche
+              </span>
+            </SheetTitle>
+          </SheetHeader>
+
+          {user && (
+            <div className="px-6 py-4 border-b border-border/60 flex items-center gap-2 text-sm text-muted-foreground">
+              <UserIcon className="h-4 w-4" strokeWidth={1.5} />
+              <span className="truncate">{firstName || user.email}</span>
+            </div>
+          )}
+
+          <nav className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-1">
             {navItems.map((item) => (
               <NavLink
                 key={item.to}
@@ -123,34 +142,41 @@ export const Header = () => {
                 onClick={() => setOpen(false)}
                 className={({ isActive }) =>
                   cn(
-                    "px-3 py-2 rounded-md text-sm font-medium",
-                    isActive ? "bg-secondary text-foreground" : "text-muted-foreground"
+                    "px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-secondary text-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                   )
                 }
               >
                 {item.label}
               </NavLink>
             ))}
-            <div className="flex gap-2 pt-3 mt-2 border-t border-border/60">
-              {user ? (
-                <Button variant="outline" size="sm" className="flex-1" onClick={handleSignOut}>
-                  <LogOut className="h-4 w-4" />
-                  Déconnexion
+          </nav>
+
+          <div className="border-t border-border/60 px-6 py-4 flex flex-col gap-2">
+            {user ? (
+              <Button variant="outline" size="sm" onClick={handleSignOut}>
+                <LogOut className="h-4 w-4" />
+                Déconnexion
+              </Button>
+            ) : (
+              <>
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/connexion" onClick={() => setOpen(false)}>
+                    Connexion
+                  </Link>
                 </Button>
-              ) : (
-                <>
-                  <Button asChild variant="outline" size="sm" className="flex-1">
-                    <Link to="/connexion" onClick={() => setOpen(false)}>Connexion</Link>
-                  </Button>
-                  <Button asChild size="sm" className="flex-1">
-                    <Link to="/inscription" onClick={() => setOpen(false)}>S'inscrire</Link>
-                  </Button>
-                </>
-              )}
-            </div>
+                <Button asChild size="sm">
+                  <Link to="/inscription" onClick={() => setOpen(false)}>
+                    S'inscrire
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
-        </div>
-      )}
+        </SheetContent>
+      </Sheet>
     </header>
   );
 };
