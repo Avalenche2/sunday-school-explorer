@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_requests: {
+        Row: {
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["admin_request_status"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["admin_request_status"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["admin_request_status"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       announcements: {
         Row: {
           content: string
@@ -382,6 +418,7 @@ export type Database = {
       }
     }
     Enums: {
+      admin_request_status: "pending" | "approved" | "rejected"
       app_role: "admin" | "enfant"
     }
     CompositeTypes: {
@@ -510,6 +547,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      admin_request_status: ["pending", "approved", "rejected"],
       app_role: ["admin", "enfant"],
     },
   },
