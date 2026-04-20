@@ -13,6 +13,13 @@ import QuizzPlay from "./pages/QuizzPlay.tsx";
 import QuizzRecap from "./pages/QuizzRecap.tsx";
 import Classement from "./pages/Classement.tsx";
 import Profil from "./pages/Profil.tsx";
+import { AdminLayout } from "./components/AdminLayout.tsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
+import AdminQuizzes from "./pages/admin/AdminQuizzes.tsx";
+import AdminQuizEditor from "./pages/admin/AdminQuizEditor.tsx";
+import AdminGospel from "./pages/admin/AdminGospel.tsx";
+import AdminAnnouncements from "./pages/admin/AdminAnnouncements.tsx";
+import AdminSchedules from "./pages/admin/AdminSchedules.tsx";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +39,15 @@ const App = () => (
             <Route path="/quizz/:id/recap" element={<QuizzRecap />} />
             <Route path="/classement" element={<Classement />} />
             <Route path="/profil" element={<Profil />} />
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="quizz" element={<AdminQuizzes />} />
+              <Route path="quizz/nouveau" element={<AdminQuizEditor />} />
+              <Route path="quizz/:id" element={<AdminQuizEditor />} />
+              <Route path="evangile" element={<AdminGospel />} />
+              <Route path="annonces" element={<AdminAnnouncements />} />
+              <Route path="horaires" element={<AdminSchedules />} />
+            </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
