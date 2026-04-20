@@ -1,76 +1,65 @@
 
-## École du Dimanche — Application de quizz bibliques
 
-Une application web en français, design **spirituel & doux** (bleu nuit profond, touches dorées, beige crème, typographie élégante type serif pour les titres + sans-serif lisible pour le corps), permettant aux enfants de jouer aux quizz hebdomadaires et au moniteur d'animer le contenu.
+## Espace dédié aux moniteurs (admin)
 
-### Rôles
-- **Enfant** : s'inscrit, joue aux quizz, consulte ses scores et le classement
-- **Admin (moniteur)** : crée les quizz, publie l'évangile du jour, gère les annonces et horaires
+Création d'un espace de connexion/inscription séparé pour les moniteurs, avec validation par un admin existant.
 
-### Pages & fonctionnalités
+### Nouvelles pages
 
-**1. Accueil (page de présentation)** — publique
-- Évangile du jour (verset + court commentaire) mis en avant
-- Carte « Quizz du dimanche » avec accès direct s'il est actif
-- Top 5 des meilleurs juniors (mois en cours)
-- Horaires de l'école du dimanche
-- Annonces récentes
-- Aperçu des derniers quizz passés
+**`/admin/connexion`** — Page de connexion dédiée
+- Formulaire email + mot de passe (style sobre, badge "Espace moniteur")
+- Si l'utilisateur n'a pas le rôle `admin` après login → message d'erreur clair + déconnexion automatique + invitation à patienter pour la validation
+- Lien vers `/admin/inscription`
 
-**2. Inscription / Connexion**
-- Inscription : prénom, nom, âge, email, mot de passe
-- Connexion email + mot de passe
-- Auth gérée par Lovable Cloud, profil enfant créé automatiquement
+**`/admin/inscription`** — Demande de compte moniteur
+- Champs : prénom, nom, email, mot de passe (pas d'âge)
+- À la soumission : crée le compte Supabase avec un `meta.requested_role = "admin"` et `age = null`
+- Le trigger `handle_new_user` continue de créer un profil + rôle `enfant` par défaut (pas de privilège)
+- Une nouvelle table `admin_requests` enregistre la demande en attente (status `pending`)
+- Message de confirmation : "Ta demande a été envoyée. Un moniteur déjà actif doit la valider avant que tu puisses accéder à l'espace admin."
 
-**3. Calendrier des quizz**
-- Liste/grille de tous les quizz (du plus récent au plus ancien)
-- Recherche par date + filtre (fait / non fait)
-- Pagination
-- Badge « Nouveau » pour le quizz du dimanche en cours
-- Clic → ouvre le quizz (ou son récapitulatif si déjà fait)
+### Validation côté admin existant
 
-**4. Page de quizz (formulaire de réponse)**
-- Affichage question par question, QCM (4 choix)
-- Barre de progression
-- Bouton Précédent/Suivant
-- Soumission finale → calcule le score automatiquement
+**Nouvelle section dans `/admin` (Tableau de bord)** : carte "Demandes de moniteurs en attente"
+- Liste des demandes `pending` (nom, email, date)
+- Bouton **Approuver** → ajoute le rôle `admin` dans `user_roles` + passe la demande en `approved`
+- Bouton **Refuser** → marque la demande `rejected` (le compte reste enfant)
+- Badge sur le menu latéral si demandes en attente
 
-**5. Récapitulatif du quizz**
-- Score obtenu / total
-- Détail question par question : bonne réponse vs réponse de l'enfant
-- Verset/référence biblique liée
-- Bouton retour au calendrier
+### Modèle de données
 
-**6. Classement**
-- Onglets : Top du mois / Classement général
-- Position de l'enfant connecté mise en évidence
+Nouvelle table `admin_requests` :
+- `id` uuid, `user_id` uuid (référence profile), `first_name`, `last_name`, `email`
+- `status` enum (`pending` | `approved` | `rejected`)
+- `created_at`, `reviewed_at`, `reviewed_by`
 
-**7. Espace Admin (moniteur)** — accès protégé par rôle
-- Créer/éditer un quizz (titre, date de publication, questions QCM avec réponse correcte)
-- Publier l'évangile du jour
-- Gérer annonces et horaires
-- Voir statistiques de participation
+RLS :
+- Insert : utilisateur authentifié peut créer sa propre demande (`auth.uid() = user_id`)
+- Select/Update : seulement les admins (`has_role(auth.uid(), 'admin')`)
+- L'utilisateur peut lire sa propre demande pour connaître son statut
 
-### Modèle de données (Lovable Cloud)
-- `profiles` (lié à auth.users) : prénom, nom, âge
-- `user_roles` (séparée, sécurisée) : enfant / admin
-- `quizzes` : titre, date, statut publié
-- `questions` : appartient à un quizz, intitulé, options (4), index réponse correcte
-- `quiz_attempts` : enfant + quizz + score + date
-- `attempt_answers` : réponses données par question
-- `daily_gospel` : verset, référence, commentaire, date
-- `announcements` : titre, contenu, date
-- `schedules` : jour, heure, lieu, description
+### Cas particulier : tout premier admin
 
-Toutes les tables protégées par RLS : un enfant ne voit/modifie que ses propres tentatives ; les admins gèrent le contenu via la fonction sécurisée `has_role`.
+Comme cette logique nécessite un admin existant, on inclut un **bootstrap one-shot** : si la table `user_roles` ne contient aucun admin au moment d'approuver, le premier utilisateur que tu passes manuellement (via la console backend) deviendra admin. Tu as déjà un compte admin actif (`isaaclys15@gmail.com` d'après les logs) → cas couvert.
 
-### Direction visuelle
-- Palette : bleu nuit `#1a2745`, or doux `#c9a96e`, crème `#f7f1e6`, blanc cassé
-- Typographie titres : serif élégante (Cormorant Garamond ou Playfair)
-- Corps : Inter / sans-serif
-- Cartes arrondies douces, ombres subtiles, séparateurs dorés fins
-- Icônes ligne fine (lucide-react)
-- Responsive mobile-first (les enfants joueront souvent sur tablette/téléphone)
+### Header & navigation
 
-### Approche de livraison
-On démarrera par : **fondations design system + page d'accueil + auth (inscription/connexion)**. Ensuite, à chaque demande de ta part, on ajoutera la page suivante (calendrier, quizz, récap, admin…) avec un code propre et réutilisable que tu pourras suivre.
+- Header public inchangé (Connexion / S'inscrire pointent toujours vers `/connexion` et `/inscription` pour les enfants)
+- Ajout d'un petit lien discret en bas de page (`Footer`) : "Espace moniteur" → `/admin/connexion`
+- `AdminLayout` redirige désormais vers `/admin/connexion` (au lieu de `/connexion`) si non connecté
+
+### Fichiers
+
+**Créés :**
+- `src/pages/admin/AdminConnexion.tsx`
+- `src/pages/admin/AdminInscription.tsx`
+- `src/components/admin/PendingAdminRequests.tsx`
+- Migration SQL : table `admin_requests` + enum + RLS
+
+**Modifiés :**
+- `src/App.tsx` — nouvelles routes
+- `src/components/AdminLayout.tsx` — redirige vers `/admin/connexion`
+- `src/pages/admin/AdminDashboard.tsx` — intègre la section demandes
+- `src/components/Footer.tsx` — lien discret "Espace moniteur"
+- `src/lib/validation.ts` — schéma `adminSignUpSchema`
+
