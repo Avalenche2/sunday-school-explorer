@@ -150,6 +150,26 @@ export const AdminQuizAttempts = ({ quizId }: Props) => {
     };
   }, [attempts]);
 
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDelete = async (attemptId: string, childName: string) => {
+    setDeletingId(attemptId);
+    // Supprime d'abord les réponses (FK), puis la tentative
+    const { error: ansErr } = await supabase
+      .from("attempt_answers")
+      .delete()
+      .eq("attempt_id", attemptId);
+    if (ansErr) {
+      setDeletingId(null);
+      return toast.error("Échec", { description: ansErr.message });
+    }
+    const { error } = await supabase.from("quiz_attempts").delete().eq("id", attemptId);
+    setDeletingId(null);
+    if (error) return toast.error("Échec", { description: error.message });
+    setAttempts((prev) => prev.filter((a) => a.id !== attemptId));
+    toast.success(`Tentative de ${childName} supprimée`);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -190,38 +210,76 @@ export const AdminQuizAttempts = ({ quizId }: Props) => {
             return (
               <Collapsible key={a.id}>
                 <Card className="shadow-soft">
-                  <CollapsibleTrigger asChild>
-                    <button className="w-full text-left">
-                      <CardContent className="p-4 flex items-center gap-3 hover:bg-secondary/30 rounded-lg transition-colors">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-xs font-semibold shrink-0">
-                          {childName
-                            .split(" ")
-                            .map((s) => s[0])
-                            .join("")
-                            .slice(0, 2)
-                            .toUpperCase()}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate">{childName}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {formatDate(a.completed_at)}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-serif text-lg font-semibold leading-none">
-                            {a.score}/{a.total}
-                          </p>
-                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1">
-                            {pct}%
-                          </p>
-                        </div>
-                        <ChevronDown
-                          className="h-4 w-4 text-muted-foreground transition-transform [[data-state=open]>div>&]:rotate-180"
-                          strokeWidth={1.6}
-                        />
-                      </CardContent>
-                    </button>
-                  </CollapsibleTrigger>
+                  <div className="flex items-center">
+                    <CollapsibleTrigger asChild>
+                      <button className="flex-1 text-left">
+                        <CardContent className="p-4 flex items-center gap-3 hover:bg-secondary/30 rounded-l-lg transition-colors">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-xs font-semibold shrink-0">
+                            {childName
+                              .split(" ")
+                              .map((s) => s[0])
+                              .join("")
+                              .slice(0, 2)
+                              .toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">{childName}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatDate(a.completed_at)}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-serif text-lg font-semibold leading-none">
+                              {a.score}/{a.total}
+                            </p>
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1">
+                              {pct}%
+                            </p>
+                          </div>
+                          <ChevronDown
+                            className="h-4 w-4 text-muted-foreground transition-transform [[data-state=open]>div>&]:rotate-180"
+                            strokeWidth={1.6}
+                          />
+                        </CardContent>
+                      </button>
+                    </CollapsibleTrigger>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="mr-2 text-muted-foreground hover:text-destructive"
+                          disabled={deletingId === a.id}
+                          aria-label="Supprimer la tentative"
+                        >
+                          {deletingId === a.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Supprimer cette tentative ?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            La tentative de <span className="font-medium text-foreground">{childName}</span>{" "}
+                            ({a.score}/{a.total}, {formatDate(a.completed_at)}) et toutes ses réponses
+                            seront définitivement supprimées. Cette action est irréversible.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDelete(a.id, childName)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Supprimer
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                   <CollapsibleContent>
                     <div className="border-t border-border/60 p-4 space-y-3 bg-secondary/20">
                       {questions.map((q) => {
