@@ -231,7 +231,7 @@ export const AdminQuizAttempts = ({ quizId }: Props) => {
                                     key={i}
                                     className={cn(
                                       "flex items-center gap-2 rounded-md border px-2 py-1.5 text-xs",
-                                      isCorrect && "border-emerald-500/60 bg-emerald-500/10",
+                                      isCorrect && "border-accent/60 bg-accent/10",
                                       isSelected && !isCorrect &&
                                         "border-destructive/60 bg-destructive/10",
                                       !isCorrect && !isSelected && "border-border/60"
@@ -242,7 +242,7 @@ export const AdminQuizAttempts = ({ quizId }: Props) => {
                                     </span>
                                     <span className="flex-1">{opt}</span>
                                     {isCorrect && (
-                                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                                      <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
                                     )}
                                     {isSelected && !isCorrect && (
                                       <XCircle className="h-3.5 w-3.5 text-destructive" />
@@ -258,7 +258,7 @@ export const AdminQuizAttempts = ({ quizId }: Props) => {
                             )}
                             <div className="flex items-center gap-1.5 text-xs">
                               {ok ? (
-                                <span className="text-emerald-600 font-medium">
+                                <span className="text-accent font-medium">
                                   ✓ Bonne réponse
                                 </span>
                               ) : (
