@@ -13,6 +13,7 @@ import QuizzPlay from "./pages/QuizzPlay.tsx";
 import QuizzRecap from "./pages/QuizzRecap.tsx";
 import Classement from "./pages/Classement.tsx";
 import Profil from "./pages/Profil.tsx";
+import Annonces from "./pages/Annonces.tsx";
 import { AdminLayout } from "./components/AdminLayout.tsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
 import AdminQuizzes from "./pages/admin/AdminQuizzes.tsx";
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/quizz/:id/recap" element={<QuizzRecap />} />
             <Route path="/classement" element={<Classement />} />
             <Route path="/profil" element={<Profil />} />
+            <Route path="/annonces" element={<Annonces />} />
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="quizz" element={<AdminQuizzes />} />
