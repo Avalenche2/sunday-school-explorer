@@ -30,6 +30,7 @@ const Annonces = () => {
   const [list, setList] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [year, setYear] = useState<YearFilter>("all");
+  const [query, setQuery] = useState("");
   const [visible, setVisible] = useState(PAGE_SIZE);
 
   useEffect(() => {
@@ -51,18 +52,25 @@ const Annonces = () => {
     return Array.from(set).sort((a, b) => b - a);
   }, [list]);
 
-  // Filtrage par année
+  // Filtrage combiné : année + recherche texte (titre ou contenu)
   const filtered = useMemo(() => {
-    if (year === "all") return list;
-    return list.filter(
-      (a) => new Date(a.published_at).getFullYear() === year
-    );
-  }, [list, year]);
+    const q = query.trim().toLowerCase();
+    return list.filter((a) => {
+      if (year !== "all" && new Date(a.published_at).getFullYear() !== year) {
+        return false;
+      }
+      if (!q) return true;
+      return (
+        a.title.toLowerCase().includes(q) ||
+        a.content.toLowerCase().includes(q)
+      );
+    });
+  }, [list, year, query]);
 
-  // Reset pagination quand le filtre change
+  // Reset pagination quand un filtre change
   useEffect(() => {
     setVisible(PAGE_SIZE);
-  }, [year]);
+  }, [year, query]);
 
   const shown = filtered.slice(0, visible);
   const hasMore = visible < filtered.length;
