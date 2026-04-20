@@ -179,9 +179,9 @@ export const computeUnlockedBadges = (
 
   // Défis quotidiens
   if (challengeAttempts.some((c) => c.is_correct)) unlocked.add("first_challenge");
-  const streak = longestDailyChallengeStreak(challengeAttempts);
-  if (streak >= 3) unlocked.add("challenge_streak_3");
-  if (streak >= 7) unlocked.add("challenge_streak_7");
+  const challengeStreak = longestDailyChallengeStreak(challengeAttempts);
+  if (challengeStreak >= 3) unlocked.add("challenge_streak_3");
+  if (challengeStreak >= 7) unlocked.add("challenge_streak_7");
 
   return unlocked;
 };
