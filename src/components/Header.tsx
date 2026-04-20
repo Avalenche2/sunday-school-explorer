@@ -1,9 +1,10 @@
 import { Link, NavLink } from "react-router-dom";
 import { BookOpen, LogOut, Menu, User as UserIcon, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 const baseNavItems = [
@@ -15,8 +16,23 @@ const baseNavItems = [
 
 export const Header = () => {
   const [open, setOpen] = useState(false);
+  const [firstName, setFirstName] = useState<string>("");
   const { user, signOut, isAdmin } = useAuth();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (!user) {
+      setFirstName("");
+      return;
+    }
+    supabase
+      .from("profiles")
+      .select("first_name")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setFirstName(data?.first_name ?? ""));
+  }, [user]);
+
   const navItems = user
     ? [
         ...baseNavItems,
@@ -68,7 +84,7 @@ export const Header = () => {
             <>
               <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <UserIcon className="h-4 w-4" strokeWidth={1.5} />
-                {user.email}
+                {firstName || user.email}
               </span>
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4" />
