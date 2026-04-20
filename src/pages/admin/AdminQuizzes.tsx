@@ -66,9 +66,41 @@ const AdminQuizzes = () => {
     load();
   };
 
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  const counts = useMemo(() => {
+    let pub = 0,
+      sched = 0,
+      draft = 0;
+    quizzes.forEach((q) => {
+      if (!q.is_published) draft++;
+      else if (q.publish_date > todayStr) sched++;
+      else pub++;
+    });
+    return { all: quizzes.length, published: pub, scheduled: sched, draft };
+  }, [quizzes, todayStr]);
+
+  const visible = useMemo(() => {
+    if (filter === "all") return quizzes;
+    return quizzes.filter((q) => {
+      const isScheduled = q.is_published && q.publish_date > todayStr;
+      if (filter === "scheduled") return isScheduled;
+      if (filter === "published") return q.is_published && !isScheduled;
+      if (filter === "draft") return !q.is_published;
+      return true;
+    });
+  }, [quizzes, filter, todayStr]);
+
+  const filterTabs: { value: Filter; label: string; count: number }[] = [
+    { value: "all", label: "Tous", count: counts.all },
+    { value: "published", label: "Publiés", count: counts.published },
+    { value: "scheduled", label: "Programmés", count: counts.scheduled },
+    { value: "draft", label: "Brouillons", count: counts.draft },
+  ];
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <h2 className="font-serif text-2xl font-semibold">Tous les quizz</h2>
         <Button asChild>
           <Link to="/admin/quizz/nouveau">
@@ -77,18 +109,43 @@ const AdminQuizzes = () => {
         </Button>
       </div>
 
+      <div className="flex flex-wrap gap-2">
+        {filterTabs.map((t) => (
+          <button
+            key={t.value}
+            type="button"
+            onClick={() => setFilter(t.value)}
+            className={cn(
+              "rounded-full border px-3 py-1 text-xs font-medium transition-colors inline-flex items-center gap-1.5",
+              filter === t.value
+                ? "border-accent bg-accent text-accent-foreground"
+                : "border-border bg-card text-muted-foreground hover:border-accent/40 hover:text-foreground"
+            )}
+          >
+            {t.label}
+            <span
+              className={cn(
+                "rounded-full px-1.5 text-[10px]",
+                filter === t.value ? "bg-accent-foreground/15" : "bg-muted"
+              )}
+            >
+              {t.count}
+            </span>
+          </button>
+        ))}
+      </div>
+
       {loading ? (
         <p className="text-sm text-muted-foreground">Chargement…</p>
-      ) : quizzes.length === 0 ? (
+      ) : visible.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="p-10 text-center text-muted-foreground text-sm">
-            Aucun quizz. Crée le premier !
+            {quizzes.length === 0 ? "Aucun quizz. Crée le premier !" : "Aucun quizz dans cette catégorie."}
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-2">
-          {quizzes.map((q) => {
-            const todayStr = new Date().toISOString().slice(0, 10);
+          {visible.map((q) => {
             const isScheduled = q.is_published && q.publish_date > todayStr;
             return (
             <Card key={q.id} className="shadow-soft">
