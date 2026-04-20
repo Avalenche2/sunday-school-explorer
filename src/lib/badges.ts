@@ -1,16 +1,19 @@
 import {
   Award,
+  CalendarCheck,
   Crown,
   Flame,
   Medal,
   Sparkles,
   Star,
+  Sun,
   Target,
   Trophy,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 
-export type BadgeCategory = "participation" | "performance" | "regularite" | "podium";
+export type BadgeCategory = "participation" | "performance" | "regularite" | "podium" | "defi";
 
 export interface BadgeDef {
   id: string;
@@ -35,6 +38,11 @@ export interface MonthlyRankInfo {
   rank: number | null;
 }
 
+export interface DailyChallengeAttemptLite {
+  challenge_date: string; // YYYY-MM-DD
+  is_correct: boolean;
+}
+
 export const BADGES: BadgeDef[] = [
   // Participation
   { id: "first_quiz", name: "Premier pas", description: "Termine ton premier quizz", category: "participation", icon: Sparkles, tier: "bronze" },
@@ -54,6 +62,11 @@ export const BADGES: BadgeDef[] = [
   // Podium (mensuel)
   { id: "monthly_top_3", name: "Top 3 du mois", description: "Termine dans le top 3 mensuel", category: "podium", icon: Medal, tier: "argent" },
   { id: "monthly_first", name: "Champion du mois", description: "1er du classement mensuel", category: "podium", icon: Crown, tier: "or" },
+
+  // Défi du jour
+  { id: "first_challenge", name: "Premier défi", description: "Réponds juste au défi du jour pour la 1ʳᵉ fois", category: "defi", icon: Sun, tier: "bronze" },
+  { id: "challenge_streak_3", name: "Trio quotidien", description: "3 défis du jour réussis d'affilée", category: "defi", icon: Zap, tier: "argent" },
+  { id: "challenge_streak_7", name: "Semaine parfaite", description: "7 défis du jour réussis d'affilée", category: "defi", icon: CalendarCheck, tier: "or" },
 ];
 
 const startOfWeekMonday = (d: Date) => {
@@ -99,9 +112,45 @@ const longestPerfectStreak = (attempts: AttemptLite[]): number => {
   return best;
 };
 
+/**
+ * Calcule la plus longue série de défis quotidiens réussis se terminant aujourd'hui ou hier.
+ * Une série casse dès qu'un jour est manqué ou raté.
+ */
+export const longestDailyChallengeStreak = (
+  attempts: DailyChallengeAttemptLite[]
+): number => {
+  if (attempts.length === 0) return 0;
+  // Map jour -> réussite (un seul essai par jour normalement)
+  const byDay = new Map<string, boolean>();
+  attempts.forEach((a) => {
+    const prev = byDay.get(a.challenge_date);
+    byDay.set(a.challenge_date, prev || a.is_correct);
+  });
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+
+  // On démarre depuis aujourd'hui ; si pas joué aujourd'hui, on autorise hier comme point de départ
+  let cursor = new Date(today);
+  if (!byDay.has(fmt(cursor))) {
+    cursor.setDate(cursor.getDate() - 1);
+    if (!byDay.get(fmt(cursor))) return 0;
+  }
+
+  let count = 0;
+  while (byDay.get(fmt(cursor)) === true) {
+    count += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return count;
+};
+
 export const computeUnlockedBadges = (
   attempts: AttemptLite[],
-  monthly?: MonthlyRankInfo
+  monthly?: MonthlyRankInfo,
+  challengeAttempts: DailyChallengeAttemptLite[] = []
 ): Set<string> => {
   const unlocked = new Set<string>();
   const count = attempts.length;
@@ -127,6 +176,12 @@ export const computeUnlockedBadges = (
     if (monthly.rank <= 3) unlocked.add("monthly_top_3");
     if (monthly.rank === 1) unlocked.add("monthly_first");
   }
+
+  // Défis quotidiens
+  if (challengeAttempts.some((c) => c.is_correct)) unlocked.add("first_challenge");
+  const challengeStreak = longestDailyChallengeStreak(challengeAttempts);
+  if (challengeStreak >= 3) unlocked.add("challenge_streak_3");
+  if (challengeStreak >= 7) unlocked.add("challenge_streak_7");
 
   return unlocked;
 };

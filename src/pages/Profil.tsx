@@ -25,6 +25,7 @@ import {
   BADGES,
   computeUnlockedBadges,
   type AttemptLite,
+  type DailyChallengeAttemptLite,
 } from "@/lib/badges";
 
 interface ProfileRow {
@@ -41,6 +42,7 @@ const Profil = () => {
   const { user, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [attempts, setAttempts] = useState<AttemptWithQuiz[]>([]);
+  const [challengeAttempts, setChallengeAttempts] = useState<DailyChallengeAttemptLite[]>([]);
   const [monthlyRank, setMonthlyRank] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -50,7 +52,7 @@ const Profil = () => {
     const load = async () => {
       setLoading(true);
 
-      const [profileRes, attemptsRes, monthRes] = await Promise.all([
+      const [profileRes, attemptsRes, challengeRes] = await Promise.all([
         supabase
           .from("profiles")
           .select("first_name, last_name, age")
@@ -62,12 +64,14 @@ const Profil = () => {
           .eq("user_id", user.id)
           .order("completed_at", { ascending: false }),
         supabase
-          .from("quiz_attempts")
-          .select("user_id, score"),
+          .from("daily_challenge_attempts")
+          .select("challenge_date, is_correct")
+          .eq("user_id", user.id),
       ]);
 
       setProfile(profileRes.data ?? null);
       setAttempts((attemptsRes.data ?? []) as unknown as AttemptWithQuiz[]);
+      setChallengeAttempts((challengeRes.data ?? []) as DailyChallengeAttemptLite[]);
 
       // Rang mensuel : agrège par utilisateur sur le mois en cours
       const now = new Date();
@@ -109,8 +113,8 @@ const Profil = () => {
   }, [attempts]);
 
   const unlocked = useMemo(
-    () => computeUnlockedBadges(attempts, { rank: monthlyRank }),
-    [attempts, monthlyRank]
+    () => computeUnlockedBadges(attempts, { rank: monthlyRank }, challengeAttempts),
+    [attempts, monthlyRank, challengeAttempts]
   );
 
   if (!authLoading && !user) {

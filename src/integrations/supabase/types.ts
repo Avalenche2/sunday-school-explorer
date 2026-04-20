@@ -80,6 +80,77 @@ export type Database = {
           },
         ]
       }
+      daily_challenge_attempts: {
+        Row: {
+          challenge_date: string
+          challenge_id: string
+          completed_at: string
+          id: string
+          is_correct: boolean
+          selected_index: number
+          user_id: string
+        }
+        Insert: {
+          challenge_date: string
+          challenge_id: string
+          completed_at?: string
+          id?: string
+          is_correct: boolean
+          selected_index: number
+          user_id: string
+        }
+        Update: {
+          challenge_date?: string
+          challenge_id?: string
+          completed_at?: string
+          id?: string
+          is_correct?: boolean
+          selected_index?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_challenge_attempts_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "daily_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_challenges: {
+        Row: {
+          bible_reference: string | null
+          challenge_date: string
+          correct_index: number
+          created_at: string
+          created_by: string | null
+          id: string
+          options: Json
+          prompt: string
+        }
+        Insert: {
+          bible_reference?: string | null
+          challenge_date: string
+          correct_index: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          options: Json
+          prompt: string
+        }
+        Update: {
+          bible_reference?: string | null
+          challenge_date?: string
+          correct_index?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          options?: Json
+          prompt?: string
+        }
+        Relationships: []
+      }
       daily_gospel: {
         Row: {
           commentary: string | null

@@ -11,9 +11,18 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { Activity, Award, Loader2, Target, TrendingUp, Users } from "lucide-react";
+import { Activity, Award, Download, Loader2, Target, TrendingUp, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
 interface Attempt {
   id: string;
@@ -56,17 +65,53 @@ const fmtWeek = (d: Date) =>
 const fmtMonth = (d: Date) =>
   d.toLocaleDateString("fr-FR", { month: "short", year: "2-digit" });
 
+type PeriodKey = "7d" | "30d" | "90d" | "month" | "all";
+
+const periodOptions: { value: PeriodKey; label: string }[] = [
+  { value: "7d", label: "7 derniers jours" },
+  { value: "30d", label: "30 derniers jours" },
+  { value: "90d", label: "90 derniers jours" },
+  { value: "month", label: "Mois en cours" },
+  { value: "all", label: "Toute la période" },
+];
+
+const periodStart = (key: PeriodKey): Date | null => {
+  const now = new Date();
+  switch (key) {
+    case "7d":
+      return new Date(now.getTime() - 7 * 24 * 3600 * 1000);
+    case "30d":
+      return new Date(now.getTime() - 30 * 24 * 3600 * 1000);
+    case "90d":
+      return new Date(now.getTime() - 90 * 24 * 3600 * 1000);
+    case "month":
+      return new Date(now.getFullYear(), now.getMonth(), 1);
+    case "all":
+    default:
+      return null;
+  }
+};
+
+const csvEscape = (val: string) => {
+  if (/[",\n;]/.test(val)) return `"${val.replace(/"/g, '""')}"`;
+  return val;
+};
+
 const AdminStats = () => {
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [profiles, setProfiles] = useState<Map<string, string>>(new Map());
+  const [exportPeriod, setExportPeriod] = useState<PeriodKey>("30d");
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const [{ data: a }, { data: q }, { data: ans }, { data: qs }] =
+      const [{ data: a }, { data: q }, { data: ans }, { data: qs }, { data: pr }] =
         await Promise.all([
           supabase
             .from("quiz_attempts")
@@ -79,15 +124,81 @@ const AdminStats = () => {
             .select("question_id, is_correct")
             .limit(1000),
           supabase.from("questions").select("id, prompt, quiz_id"),
+          supabase.from("profiles").select("id, first_name, last_name"),
         ]);
       setAttempts((a ?? []) as Attempt[]);
       setQuizzes((q ?? []) as Quiz[]);
       setAnswers((ans ?? []) as Answer[]);
       setQuestions((qs ?? []) as Question[]);
+      const map = new Map<string, string>();
+      (pr ?? []).forEach((p: { id: string; first_name: string; last_name: string }) => {
+        map.set(p.id, `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim());
+      });
+      setProfiles(map);
       setLoading(false);
     };
     load();
   }, []);
+
+  const handleExportCSV = () => {
+    setExporting(true);
+    try {
+      const start = periodStart(exportPeriod);
+      const filtered = attempts.filter((at) => {
+        if (!start) return true;
+        return new Date(at.completed_at) >= start;
+      });
+      const quizMap = new Map(quizzes.map((q) => [q.id, q.title]));
+
+      const header = [
+        "Date",
+        "Heure",
+        "Enfant",
+        "Quizz",
+        "Score",
+        "Total",
+        "Pourcentage",
+      ];
+      const rows = filtered.map((at) => {
+        const d = new Date(at.completed_at);
+        const pct = at.total ? Math.round((at.score / at.total) * 100) : 0;
+        return [
+          d.toLocaleDateString("fr-FR"),
+          d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+          profiles.get(at.user_id) || "—",
+          quizMap.get(at.quiz_id) || "Quizz supprimé",
+          String(at.score),
+          String(at.total),
+          `${pct}%`,
+        ].map(csvEscape).join(",");
+      });
+
+      const csv = "\ufeff" + [header.join(","), ...rows].join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const stamp = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `participations_${exportPeriod}_${stamp}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Export prêt",
+        description: `${filtered.length} participation(s) exportée(s).`,
+      });
+    } catch (e) {
+      toast({
+        title: "Export impossible",
+        description: e instanceof Error ? e.message : "Erreur inconnue",
+        variant: "destructive",
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   /** KPIs */
   const kpis = useMemo(() => {
@@ -237,6 +348,37 @@ const AdminStats = () => {
 
   return (
     <div className="space-y-6">
+      <Card className="shadow-soft border-accent/20">
+        <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-accent font-semibold">
+              Export des données
+            </p>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Télécharge les participations et scores au format CSV.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Select value={exportPeriod} onValueChange={(v) => setExportPeriod(v as PeriodKey)}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {periodOptions.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button onClick={handleExportCSV} disabled={exporting}>
+              {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              Exporter CSV
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {kpiCards.map((k) => {
           const Icon = k.icon;

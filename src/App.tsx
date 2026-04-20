@@ -21,6 +21,7 @@ import AdminStats from "./pages/admin/AdminStats.tsx";
 import AdminGospel from "./pages/admin/AdminGospel.tsx";
 import AdminAnnouncements from "./pages/admin/AdminAnnouncements.tsx";
 import AdminSchedules from "./pages/admin/AdminSchedules.tsx";
+import AdminDailyChallenge from "./pages/admin/AdminDailyChallenge.tsx";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => (
               <Route path="evangile" element={<AdminGospel />} />
               <Route path="annonces" element={<AdminAnnouncements />} />
               <Route path="horaires" element={<AdminSchedules />} />
+              <Route path="defi" element={<AdminDailyChallenge />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
