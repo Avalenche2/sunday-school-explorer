@@ -35,6 +35,8 @@ const QuizzPlay = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const QUESTION_DURATION = 40; // secondes par question
+
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<string, number>>({});
@@ -42,6 +44,8 @@ const QuizzPlay = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [alreadyDone, setAlreadyDone] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(QUESTION_DURATION);
+  const submittedRef = useRef(false);
 
   useEffect(() => {
     if (!id || !user) return;
