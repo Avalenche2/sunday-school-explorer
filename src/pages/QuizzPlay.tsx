@@ -187,6 +187,30 @@ const QuizzPlay = () => {
     navigate(`/quizz/${id}/recap`, { replace: true });
   }, [user, id, questions, answers, navigate, toast]);
 
+  // Reset du chronomètre à chaque changement de question
+  useEffect(() => {
+    setTimeLeft(QUESTION_DURATION);
+  }, [current, QUESTION_DURATION]);
+
+  // Décompte 1s par 1s
+  useEffect(() => {
+    if (loading || alreadyDone || submittedRef.current || total === 0) return;
+    if (timeLeft <= 0) return;
+    const id = window.setTimeout(() => setTimeLeft((t) => t - 1), 1000);
+    return () => window.clearTimeout(id);
+  }, [timeLeft, loading, alreadyDone, total]);
+
+  // Au passage à 0 → question suivante (ou soumission auto sur la dernière)
+  useEffect(() => {
+    if (timeLeft !== 0) return;
+    if (loading || alreadyDone || submittedRef.current) return;
+    if (current < total - 1) {
+      setCurrent((c) => Math.min(total - 1, c + 1));
+    } else {
+      handleSubmit();
+    }
+  }, [timeLeft, current, total, loading, alreadyDone, handleSubmit]);
+
   if (!authLoading && !user) return <Navigate to="/connexion" replace />;
 
   if (loading || authLoading) {
