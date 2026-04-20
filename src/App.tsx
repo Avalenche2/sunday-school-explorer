@@ -20,6 +20,7 @@ import AdminQuizzes from "./pages/admin/AdminQuizzes.tsx";
 import AdminQuizEditor from "./pages/admin/AdminQuizEditor.tsx";
 import AdminStats from "./pages/admin/AdminStats.tsx";
 import AdminGospel from "./pages/admin/AdminGospel.tsx";
+import AdminQuotes from "./pages/admin/AdminQuotes.tsx";
 import AdminAnnouncements from "./pages/admin/AdminAnnouncements.tsx";
 import AdminSchedules from "./pages/admin/AdminSchedules.tsx";
 import AdminDailyChallenge from "./pages/admin/AdminDailyChallenge.tsx";
@@ -55,6 +56,7 @@ const App = () => (
               <Route path="quizz/:id" element={<AdminQuizEditor />} />
               <Route path="statistiques" element={<AdminStats />} />
               <Route path="evangile" element={<AdminGospel />} />
+              <Route path="citations" element={<AdminQuotes />} />
               <Route path="annonces" element={<AdminAnnouncements />} />
               <Route path="horaires" element={<AdminSchedules />} />
               <Route path="defi" element={<AdminDailyChallenge />} />
