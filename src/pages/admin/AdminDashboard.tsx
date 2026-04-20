@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { BookOpen, CalendarDays, Megaphone, ScrollText, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
+import { PendingAdminRequests } from "@/components/admin/PendingAdminRequests";
 
 interface Stats {
   quizzes: number;
@@ -45,6 +46,8 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-6">
+      <PendingAdminRequests />
+
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {cards.map((c) => {
           const Icon = c.icon;

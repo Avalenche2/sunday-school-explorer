@@ -23,6 +23,8 @@ import AdminGospel from "./pages/admin/AdminGospel.tsx";
 import AdminAnnouncements from "./pages/admin/AdminAnnouncements.tsx";
 import AdminSchedules from "./pages/admin/AdminSchedules.tsx";
 import AdminDailyChallenge from "./pages/admin/AdminDailyChallenge.tsx";
+import AdminConnexion from "./pages/admin/AdminConnexion.tsx";
+import AdminInscription from "./pages/admin/AdminInscription.tsx";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +45,8 @@ const App = () => (
             <Route path="/classement" element={<Classement />} />
             <Route path="/profil" element={<Profil />} />
             <Route path="/annonces" element={<Annonces />} />
+            <Route path="/admin/connexion" element={<AdminConnexion />} />
+            <Route path="/admin/inscription" element={<AdminInscription />} />
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="quizz" element={<AdminQuizzes />} />

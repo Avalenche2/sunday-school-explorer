@@ -51,7 +51,7 @@ export const AdminLayout = () => {
   }
 
   if (!user) {
-    return <Navigate to="/connexion" replace state={{ from: location }} />;
+    return <Navigate to="/admin/connexion" replace state={{ from: location }} />;
   }
 
   if (!isAdmin) {
