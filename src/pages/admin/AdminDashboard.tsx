@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, CalendarDays, Megaphone, ScrollText, Users } from "lucide-react";
+import { BookOpen, CalendarClock, CalendarDays, Megaphone, ScrollText, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { PendingAdminRequests } from "@/components/admin/PendingAdminRequests";
 
 interface Stats {
   quizzes: number;
+  scheduledQuizzes: number;
   attempts: number;
   announcements: number;
   schedules: number;
@@ -18,8 +19,14 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const load = async () => {
-      const [q, a, an, s, u] = await Promise.all([
+      const today = new Date().toISOString().slice(0, 10);
+      const [q, sq, a, an, s, u] = await Promise.all([
         supabase.from("quizzes").select("id", { count: "exact", head: true }),
+        supabase
+          .from("quizzes")
+          .select("id", { count: "exact", head: true })
+          .eq("is_published", true)
+          .gt("publish_date", today),
         supabase.from("quiz_attempts").select("id", { count: "exact", head: true }),
         supabase.from("announcements").select("id", { count: "exact", head: true }),
         supabase.from("schedules").select("id", { count: "exact", head: true }),
@@ -27,6 +34,7 @@ const AdminDashboard = () => {
       ]);
       setStats({
         quizzes: q.count ?? 0,
+        scheduledQuizzes: sq.count ?? 0,
         attempts: a.count ?? 0,
         announcements: an.count ?? 0,
         schedules: s.count ?? 0,
@@ -38,6 +46,13 @@ const AdminDashboard = () => {
 
   const cards = [
     { label: "Quizz", value: stats?.quizzes, icon: ScrollText, to: "/admin/quizz" },
+    {
+      label: "Quizz programmés",
+      value: stats?.scheduledQuizzes,
+      icon: CalendarClock,
+      to: "/admin/quizz",
+      accent: true,
+    },
     { label: "Participations", value: stats?.attempts, icon: Users, to: "/admin/quizz" },
     { label: "Annonces", value: stats?.announcements, icon: Megaphone, to: "/admin/annonces" },
     { label: "Horaires", value: stats?.schedules, icon: CalendarDays, to: "/admin/horaires" },
@@ -51,11 +66,20 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {cards.map((c) => {
           const Icon = c.icon;
+          const highlight = c.accent && (c.value ?? 0) > 0;
           return (
             <Link key={c.label} to={c.to}>
-              <Card className="shadow-soft hover:shadow-elevated transition-shadow">
+              <Card
+                className={
+                  "shadow-soft hover:shadow-elevated transition-shadow " +
+                  (highlight ? "border-gold/40 bg-gold/5" : "")
+                }
+              >
                 <CardContent className="p-5">
-                  <Icon className="h-4 w-4 text-accent mb-2" strokeWidth={1.8} />
+                  <Icon
+                    className={"h-4 w-4 mb-2 " + (highlight ? "text-gold" : "text-accent")}
+                    strokeWidth={1.8}
+                  />
                   <p className="font-serif text-3xl font-semibold leading-none">
                     {c.value ?? "—"}
                   </p>
