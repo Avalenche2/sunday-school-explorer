@@ -36,6 +36,7 @@ const links = [
   { to: "/admin/annonces", label: "Annonces", icon: Megaphone },
   { to: "/admin/horaires", label: "Horaires", icon: CalendarDays },
   { to: "/admin/moniteurs", label: "Moniteurs", icon: UserCog },
+  { to: "/admin/profil", label: "Mon profil", icon: UserCircle },
 ];
 
 const Shell = ({ children }: { children: ReactNode }) => (
