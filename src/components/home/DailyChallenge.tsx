@@ -230,16 +230,17 @@ export const DailyChallenge = () => {
         ) : attempt ? (
           <div className="mt-5 space-y-3">
             {challenge.options.map((opt, idx) => {
-              const isCorrect = idx === challenge.correct_index;
               const isPicked = idx === attempt.selected_index;
+              const isCorrectPick = isPicked && attempt.is_correct;
+              const isWrongPick = isPicked && !attempt.is_correct;
               return (
                 <div
                   key={idx}
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-xl border text-sm",
-                    isCorrect
+                    isCorrectPick
                       ? "border-accent bg-accent/10"
-                      : isPicked
+                      : isWrongPick
                         ? "border-destructive/60 bg-destructive/10"
                         : "border-border bg-card opacity-60"
                   )}
@@ -247,16 +248,16 @@ export const DailyChallenge = () => {
                   <span
                     className={cn(
                       "flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold shrink-0",
-                      isCorrect
+                      isCorrectPick
                         ? "bg-accent text-accent-foreground"
-                        : isPicked
+                        : isWrongPick
                           ? "bg-destructive text-destructive-foreground"
                           : "bg-secondary text-muted-foreground"
                     )}
                   >
-                    {isCorrect ? (
+                    {isCorrectPick ? (
                       <Check className="h-4 w-4" />
-                    ) : isPicked ? (
+                    ) : isWrongPick ? (
                       <X className="h-4 w-4" />
                     ) : (
                       String.fromCharCode(65 + idx)
