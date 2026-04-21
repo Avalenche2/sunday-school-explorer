@@ -20,7 +20,7 @@ interface Challenge {
   challenge_date: string;
   prompt: string;
   options: string[];
-  correct_index: number;
+  correct_index?: number;
   bible_reference: string | null;
 }
 
@@ -44,8 +44,9 @@ export const DailyChallenge = () => {
     setLoading(true);
     const today = todayStr();
 
+    // Use the public view (no correct_index) for initial load
     const { data: c } = await supabase
-      .from("daily_challenges")
+      .from("daily_challenges_public" as any)
       .select("*")
       .eq("challenge_date", today)
       .maybeSingle();
@@ -53,7 +54,7 @@ export const DailyChallenge = () => {
     const ch = c
       ? ({
           ...c,
-          options: Array.isArray(c.options) ? (c.options as string[]) : [],
+          options: Array.isArray((c as any).options) ? ((c as any).options as string[]) : [],
         } as Challenge)
       : null;
     setChallenge(ch);
