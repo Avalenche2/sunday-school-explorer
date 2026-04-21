@@ -8,6 +8,8 @@ import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Inscription from "./pages/Inscription.tsx";
 import Connexion from "./pages/Connexion.tsx";
+import MotDePasseOublie from "./pages/MotDePasseOublie.tsx";
+import ResetPassword from "./pages/ResetPassword.tsx";
 import Quizz from "./pages/Quizz.tsx";
 import QuizzPlay from "./pages/QuizzPlay.tsx";
 import QuizzRecap from "./pages/QuizzRecap.tsx";
@@ -45,6 +47,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/inscription" element={<Inscription />} />
             <Route path="/connexion" element={<Connexion />} />
+            <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/quizz" element={<Quizz />} />
             <Route path="/quizz/:id" element={<QuizzPlay />} />
             <Route path="/quizz/:id/recap" element={<QuizzRecap />} />
@@ -53,6 +57,10 @@ const App = () => (
             <Route path="/annonces" element={<Annonces />} />
             <Route path="/citations" element={<Citations />} />
             <Route path="/admin/connexion" element={<AdminConnexion />} />
+            <Route
+              path="/admin/mot-de-passe-oublie"
+              element={<MotDePasseOublie admin />}
+            />
             <Route path="/admin/inscription" element={<AdminInscription />} />
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
