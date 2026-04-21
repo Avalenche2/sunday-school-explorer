@@ -85,6 +85,11 @@ export const AdminLayout = () => {
   }
 
   const superAdm = isSuperAdmin(user.email);
+  const [navOpen, setNavOpen] = useState(false);
+  const activeLink =
+    links.find((l) => location.pathname === l.to) ||
+    links.find((l) => !l.end && location.pathname.startsWith(l.to)) ||
+    links[0];
 
   return (
     <Shell>
