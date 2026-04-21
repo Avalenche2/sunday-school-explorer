@@ -114,7 +114,30 @@ export const AdminLayout = () => {
 
         <div className="grid gap-6 lg:gap-8 lg:grid-cols-[220px_1fr]">
           <aside>
-            <nav className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible -mx-4 px-4 lg:mx-0 lg:px-0 pb-2 lg:pb-0">
+            <button
+              type="button"
+              onClick={() => setNavOpen((v) => !v)}
+              className="lg:hidden w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-border/60 bg-secondary/40 text-sm font-medium"
+              aria-expanded={navOpen}
+              aria-controls="admin-nav"
+            >
+              <span className="flex items-center gap-2 min-w-0">
+                <Menu className="h-4 w-4 shrink-0" strokeWidth={1.8} />
+                <activeLink.icon className="h-4 w-4 shrink-0 text-accent" strokeWidth={1.8} />
+                <span className="truncate">{activeLink.label}</span>
+              </span>
+              <ChevronDown
+                className={cn("h-4 w-4 transition-transform", navOpen && "rotate-180")}
+                strokeWidth={1.8}
+              />
+            </button>
+            <nav
+              id="admin-nav"
+              className={cn(
+                "lg:flex lg:flex-col gap-1 mt-2 lg:mt-0",
+                navOpen ? "flex flex-col" : "hidden"
+              )}
+            >
               {links.map((l) => {
                 const Icon = l.icon;
                 return (
@@ -122,9 +145,10 @@ export const AdminLayout = () => {
                     key={l.to}
                     to={l.to}
                     end={l.end}
+                    onClick={() => setNavOpen(false)}
                     className={({ isActive }) =>
                       cn(
-                        "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0",
+                        "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                         isActive
                           ? "bg-secondary text-foreground"
                           : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
