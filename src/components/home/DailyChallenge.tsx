@@ -155,7 +155,7 @@ export const DailyChallenge = () => {
     setAttempt({ selected_index: selected, is_correct: isCorrectBool });
     setSubmitting(false);
 
-    if (isCorrect) {
+    if (isCorrectBool) {
       sonnerToast.success("Bravo, bonne réponse ! 🌟");
     } else {
       sonnerToast("Pas tout à fait. Reviens demain pour un nouveau défi !");
