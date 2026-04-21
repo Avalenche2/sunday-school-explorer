@@ -144,6 +144,13 @@ export type Database = {
             referencedRelation: "questions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "attempt_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       daily_challenge_attempts: {
@@ -496,6 +503,44 @@ export type Database = {
           prompt?: string | null
         }
         Relationships: []
+      }
+      questions_public: {
+        Row: {
+          bible_reference: string | null
+          created_at: string | null
+          id: string | null
+          options: Json | null
+          position: number | null
+          prompt: string | null
+          quiz_id: string | null
+        }
+        Insert: {
+          bible_reference?: string | null
+          created_at?: string | null
+          id?: string | null
+          options?: Json | null
+          position?: number | null
+          prompt?: string | null
+          quiz_id?: string | null
+        }
+        Update: {
+          bible_reference?: string | null
+          created_at?: string | null
+          id?: string | null
+          options?: Json | null
+          position?: number | null
+          prompt?: string | null
+          quiz_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
