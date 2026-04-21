@@ -14,6 +14,7 @@ import {
   ScrollText,
   ShieldCheck,
   Sun,
+  UserCircle,
   UserCog,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
