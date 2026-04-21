@@ -182,6 +182,13 @@ export type Database = {
             referencedRelation: "daily_challenges"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "daily_challenge_attempts_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "daily_challenges_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       daily_challenges: {
@@ -463,7 +470,33 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      daily_challenges_public: {
+        Row: {
+          bible_reference: string | null
+          challenge_date: string | null
+          created_at: string | null
+          id: string | null
+          options: Json | null
+          prompt: string | null
+        }
+        Insert: {
+          bible_reference?: string | null
+          challenge_date?: string | null
+          created_at?: string | null
+          id?: string | null
+          options?: Json | null
+          prompt?: string | null
+        }
+        Update: {
+          bible_reference?: string | null
+          challenge_date?: string | null
+          created_at?: string | null
+          id?: string | null
+          options?: Json | null
+          prompt?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
