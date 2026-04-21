@@ -21,6 +21,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { BadgeGrid } from "@/components/BadgeGrid";
 import { EditProfileDialog } from "@/components/EditProfileDialog";
+import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
 import {
   BADGES,
   computeUnlockedBadges,
@@ -167,20 +168,27 @@ const Profil = () => {
                       </div>
                     )}
                     {profile && (
-                      <EditProfileDialog
-                        initial={{
-                          firstName: profile.first_name,
-                          lastName: profile.last_name,
-                          age: profile.age,
-                        }}
-                        onSaved={(next) =>
-                          setProfile({
-                            first_name: next.firstName,
-                            last_name: next.lastName,
-                            age: next.age,
-                          })
-                        }
-                      />
+                      <div className="mt-4 flex flex-col items-center gap-2 w-full">
+                        <EditProfileDialog
+                          initial={{
+                            firstName: profile.first_name,
+                            lastName: profile.last_name,
+                            age: profile.age,
+                          }}
+                          onSaved={(next) =>
+                            setProfile({
+                              first_name: next.firstName,
+                              last_name: next.lastName,
+                              age: next.age,
+                            })
+                          }
+                        />
+                        <ChangePasswordDialog
+                          triggerVariant="outline"
+                          triggerSize="sm"
+                          triggerClassName="mt-0"
+                        />
+                      </div>
                     )}
                   </CardContent>
                 </Card>
