@@ -99,8 +99,6 @@ export const DailyChallenge = () => {
     if (!user || !challenge || selected === null) return;
     setSubmitting(true);
 
-    const isCorrect = selected === challenge.correct_index;
-
     // État avant pour détecter nouveaux badges
     const [{ data: priorAttempts }, { data: priorChallenges }] = await Promise.all([
       supabase
@@ -118,12 +116,10 @@ export const DailyChallenge = () => {
       (priorChallenges ?? []) as DailyChallengeAttemptLite[]
     );
 
-    const { error } = await supabase.from("daily_challenge_attempts").insert({
-      user_id: user.id,
-      challenge_id: challenge.id,
-      challenge_date: challenge.challenge_date,
-      selected_index: selected,
-      is_correct: isCorrect,
+    // Submit via server-side function (correct_index never exposed to client)
+    const { data: isCorrect, error } = await supabase.rpc("submit_daily_challenge", {
+      _challenge_id: challenge.id,
+      _selected_index: selected,
     });
 
     if (error) {
