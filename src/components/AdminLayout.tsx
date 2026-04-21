@@ -161,30 +161,46 @@ export const AdminLayout = () => {
           <div className="mt-4 md:mt-5 h-px w-12 bg-accent" />
         </div>
 
+        {navOpen && (
+          <div
+            className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in-0"
+            onClick={() => setNavOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+
         <div className="grid gap-6 lg:gap-8 lg:grid-cols-[220px_1fr]">
-          <aside ref={asideRef}>
+          <aside ref={asideRef} className={cn(navOpen && "relative z-50")}>
             <button
               type="button"
               onClick={() => setNavOpen((v) => !v)}
               className="lg:hidden w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-border/60 bg-secondary/40 text-sm font-medium"
               aria-expanded={navOpen}
               aria-controls="admin-nav"
+              aria-haspopup="menu"
+              aria-label={navOpen ? "Fermer le menu d'administration" : "Ouvrir le menu d'administration"}
             >
               <span className="flex items-center gap-2 min-w-0">
-                <Menu className="h-4 w-4 shrink-0" strokeWidth={1.8} />
-                <activeLink.icon className="h-4 w-4 shrink-0 text-accent" strokeWidth={1.8} />
+                <Menu className="h-4 w-4 shrink-0" strokeWidth={1.8} aria-hidden="true" />
+                <activeLink.icon className="h-4 w-4 shrink-0 text-accent" strokeWidth={1.8} aria-hidden="true" />
                 <span className="truncate">{activeLink.label}</span>
               </span>
               <ChevronDown
                 className={cn("h-4 w-4 transition-transform", navOpen && "rotate-180")}
                 strokeWidth={1.8}
+                aria-hidden="true"
               />
             </button>
             <nav
               id="admin-nav"
+              role="menu"
+              aria-label="Navigation administration"
+              aria-hidden={!navOpen ? true : undefined}
               className={cn(
-                "lg:flex lg:flex-col gap-1 mt-2 lg:mt-0",
-                navOpen ? "flex flex-col" : "hidden"
+                "lg:flex lg:flex-col gap-1 mt-2 lg:mt-0 lg:relative lg:bg-transparent lg:p-0 lg:rounded-none lg:border-0 lg:shadow-none",
+                navOpen
+                  ? "flex flex-col bg-background border border-border/60 rounded-lg p-2 shadow-lg"
+                  : "hidden"
               )}
             >
               {links.map((l) => {
