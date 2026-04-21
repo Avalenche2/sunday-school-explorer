@@ -125,6 +125,9 @@ export const AdminLayout = () => {
       }
     };
 
+    const prevOverflow = document.body.style.overflow;
+    if (isMobile()) document.body.style.overflow = "hidden";
+
     document.addEventListener("mousedown", onPointerDown);
     document.addEventListener("touchstart", onPointerDown, { passive: true });
     document.addEventListener("keydown", onKey);
@@ -132,6 +135,7 @@ export const AdminLayout = () => {
     aside?.addEventListener("touchstart", onTouchStart, { passive: true });
     aside?.addEventListener("touchend", onTouchEnd, { passive: true });
     return () => {
+      document.body.style.overflow = prevOverflow;
       document.removeEventListener("mousedown", onPointerDown);
       document.removeEventListener("touchstart", onPointerDown);
       document.removeEventListener("keydown", onKey);
