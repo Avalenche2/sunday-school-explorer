@@ -71,6 +71,18 @@ export const DailyChallenge = () => {
         .eq("challenge_id", ch.id)
         .maybeSingle();
       setAttempt(a as Attempt | null);
+
+      // If already attempted, fetch correct_index from base table (RLS allows it after attempt)
+      if (a) {
+        const { data: full } = await supabase
+          .from("daily_challenges")
+          .select("correct_index")
+          .eq("id", ch.id)
+          .maybeSingle();
+        if (full) {
+          setChallenge({ ...ch, correct_index: full.correct_index });
+        }
+      }
     } else {
       setAttempt(null);
     }
