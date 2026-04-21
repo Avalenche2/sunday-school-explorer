@@ -28,6 +28,7 @@ import AdminDailyChallenge from "./pages/admin/AdminDailyChallenge.tsx";
 import AdminConnexion from "./pages/admin/AdminConnexion.tsx";
 import AdminInscription from "./pages/admin/AdminInscription.tsx";
 import AdminMoniteurs from "./pages/admin/AdminMoniteurs.tsx";
+import AdminProfil from "./pages/admin/AdminProfil.tsx";
 import { OfflineBanner } from "./components/OfflineBanner.tsx";
 
 const queryClient = new QueryClient();
@@ -65,6 +66,7 @@ const App = () => (
               <Route path="horaires" element={<AdminSchedules />} />
               <Route path="defi" element={<AdminDailyChallenge />} />
               <Route path="moniteurs" element={<AdminMoniteurs />} />
+              <Route path="profil" element={<AdminProfil />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
