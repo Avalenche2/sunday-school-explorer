@@ -1,9 +1,21 @@
-const CACHE_NAME = "edd-shell-v1";
+const CACHE_NAME = "edd-shell-v2";
+const DATA_CACHE = "edd-data-v1";
+
 const SHELL_ASSETS = [
   "/",
   "/manifest.json",
   "/favicon.png",
   "/icon-192.png",
+];
+
+// Supabase API paths to cache for offline data access
+const CACHEABLE_API_PATTERNS = [
+  "/rest/v1/announcements",
+  "/rest/v1/schedules",
+  "/rest/v1/quizzes",
+  "/rest/v1/daily_gospel",
+  "/rest/v1/daily_quotes",
+  "/rest/v1/daily_challenges",
 ];
 
 self.addEventListener("install", (event) => {
@@ -16,23 +28,67 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+      Promise.all(
+        keys
+          .filter((k) => k !== CACHE_NAME && k !== DATA_CACHE)
+          .map((k) => caches.delete(k))
+      )
     )
   );
   self.clients.claim();
 });
 
-self.addEventListener("fetch", (event) => {
-  if (event.request.url.includes("/~oauth")) return;
+function isCacheableAPI(url) {
+  return CACHEABLE_API_PATTERNS.some((p) => url.includes(p));
+}
 
-  if (event.request.mode === "navigate") {
+self.addEventListener("fetch", (event) => {
+  const { request } = event;
+  const url = request.url;
+
+  // Never intercept OAuth
+  if (url.includes("/~oauth")) return;
+
+  // API requests: network-first, cache fallback
+  if (isCacheableAPI(url)) {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match("/"))
+      fetch(request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(DATA_CACHE).then((cache) => cache.put(request, clone));
+          return response;
+        })
+        .catch(() => caches.match(request))
     );
     return;
   }
 
+  // Navigation requests: network-first, serve cached shell as fallback
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request).catch(() => caches.match("/"))
+    );
+    return;
+  }
+
+  // Static assets: cache-first for JS/CSS bundles
+  if (url.match(/\.(js|css|woff2?|png|jpg|svg)$/)) {
+    event.respondWith(
+      caches.match(request).then(
+        (cached) =>
+          cached ||
+          fetch(request).then((response) => {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+            return response;
+          })
+      )
+    );
+    return;
+  }
+
+  // Everything else: network with cache fallback
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
+    fetch(request).catch(() => caches.match(request))
   );
 });
