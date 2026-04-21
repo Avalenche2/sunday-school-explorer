@@ -8,6 +8,8 @@ import { isSuperAdmin } from "@/lib/superAdmin";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
+import { EditAdminProfileDialog } from "@/components/EditAdminProfileDialog";
 
 const AdminProfil = () => {
   const { user, signOut } = useAuth();
@@ -40,11 +42,21 @@ const AdminProfil = () => {
   return (
     <Card className="border-border/60 shadow-soft">
       <CardContent className="p-6 md:p-8 space-y-6">
-        <div>
-          <h2 className="font-serif text-xl md:text-2xl font-semibold">Mon profil moniteur</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Informations liées à ton compte d'administration.
-          </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h2 className="font-serif text-xl md:text-2xl font-semibold">Mon profil moniteur</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Informations liées à ton compte d'administration.
+            </p>
+          </div>
+          {profile && (
+            <EditAdminProfileDialog
+              initial={{ firstName: profile.first_name, lastName: profile.last_name }}
+              onSaved={(next) =>
+                setProfile({ first_name: next.firstName, last_name: next.lastName })
+              }
+            />
+          )}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -83,7 +95,8 @@ const AdminProfil = () => {
           </div>
         </div>
 
-        <div className="pt-2 border-t border-border/60">
+        <div className="pt-2 border-t border-border/60 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+          <ChangePasswordDialog />
           <Button
             variant="destructive"
             onClick={handleLogout}
