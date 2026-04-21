@@ -101,15 +101,19 @@ const QuizzPlay = () => {
 
       const [{ data: q }, { data: qs }] = await Promise.all([
         supabase.from("quizzes").select("id, title, description, bible_reference").eq("id", id).maybeSingle(),
-        supabase.from("questions").select("*").eq("quiz_id", id).order("position", { ascending: true }),
+        supabase.from("questions_public" as any).select("*").eq("quiz_id", id).order("position", { ascending: true }),
       ]);
 
       setQuiz(q as Quiz | null);
+      const rawQs = (qs ?? []) as Record<string, any>[];
       setQuestions(
-        (qs ?? []).map((row) => ({
-          ...row,
+        rawQs.map((row) => ({
+          id: row.id,
+          prompt: row.prompt,
           options: Array.isArray(row.options) ? (row.options as string[]) : [],
-        })) as Question[]
+          bible_reference: row.bible_reference ?? null,
+          position: row.position,
+        }))
       );
       setLoading(false);
     };
