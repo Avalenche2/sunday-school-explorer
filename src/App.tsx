@@ -28,6 +28,7 @@ import AdminDailyChallenge from "./pages/admin/AdminDailyChallenge.tsx";
 import AdminConnexion from "./pages/admin/AdminConnexion.tsx";
 import AdminInscription from "./pages/admin/AdminInscription.tsx";
 import AdminMoniteurs from "./pages/admin/AdminMoniteurs.tsx";
+import { OfflineBanner } from "./components/OfflineBanner.tsx";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <OfflineBanner />
       <BrowserRouter>
         <AuthProvider>
           <Routes>
