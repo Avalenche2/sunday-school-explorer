@@ -66,6 +66,7 @@ const App = () => (
               <Route path="horaires" element={<AdminSchedules />} />
               <Route path="defi" element={<AdminDailyChallenge />} />
               <Route path="moniteurs" element={<AdminMoniteurs />} />
+              <Route path="profil" element={<AdminProfil />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
