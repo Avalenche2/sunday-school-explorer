@@ -20,7 +20,7 @@ interface Challenge {
   challenge_date: string;
   prompt: string;
   options: string[];
-  correct_index: number;
+  correct_index?: number;
   bible_reference: string | null;
 }
 
@@ -44,17 +44,22 @@ export const DailyChallenge = () => {
     setLoading(true);
     const today = todayStr();
 
+    // Use the public view (no correct_index) for initial load
     const { data: c } = await supabase
-      .from("daily_challenges")
+      .from("daily_challenges_public" as any)
       .select("*")
       .eq("challenge_date", today)
       .maybeSingle();
 
-    const ch = c
-      ? ({
-          ...c,
-          options: Array.isArray(c.options) ? (c.options as string[]) : [],
-        } as Challenge)
+    const raw = c as Record<string, any> | null;
+    const ch: Challenge | null = raw
+      ? {
+          id: raw.id,
+          challenge_date: raw.challenge_date,
+          prompt: raw.prompt,
+          options: Array.isArray(raw.options) ? (raw.options as string[]) : [],
+          bible_reference: raw.bible_reference ?? null,
+        }
       : null;
     setChallenge(ch);
 
@@ -94,8 +99,6 @@ export const DailyChallenge = () => {
     if (!user || !challenge || selected === null) return;
     setSubmitting(true);
 
-    const isCorrect = selected === challenge.correct_index;
-
     // État avant pour détecter nouveaux badges
     const [{ data: priorAttempts }, { data: priorChallenges }] = await Promise.all([
       supabase
@@ -113,12 +116,10 @@ export const DailyChallenge = () => {
       (priorChallenges ?? []) as DailyChallengeAttemptLite[]
     );
 
-    const { error } = await supabase.from("daily_challenge_attempts").insert({
-      user_id: user.id,
-      challenge_id: challenge.id,
-      challenge_date: challenge.challenge_date,
-      selected_index: selected,
-      is_correct: isCorrect,
+    // Submit via server-side function (correct_index never exposed to client)
+    const { data: isCorrect, error } = await supabase.rpc("submit_daily_challenge", {
+      _challenge_id: challenge.id,
+      _selected_index: selected,
     });
 
     if (error) {
@@ -127,20 +128,22 @@ export const DailyChallenge = () => {
       return;
     }
 
+    const isCorrectBool = !!isCorrect;
+
     const after = computeUnlockedBadges(
       (priorAttempts ?? []) as AttemptLite[],
       undefined,
       [
         ...((priorChallenges ?? []) as DailyChallengeAttemptLite[]),
-        { challenge_date: challenge.challenge_date, is_correct: isCorrect },
+        { challenge_date: challenge.challenge_date, is_correct: isCorrectBool },
       ]
     );
     const newlyUnlocked = BADGES.filter((b) => after.has(b.id) && !before.has(b.id));
 
-    setAttempt({ selected_index: selected, is_correct: isCorrect });
+    setAttempt({ selected_index: selected, is_correct: isCorrectBool });
     setSubmitting(false);
 
-    if (isCorrect) {
+    if (isCorrectBool) {
       sonnerToast.success("Bravo, bonne réponse ! 🌟");
     } else {
       sonnerToast("Pas tout à fait. Reviens demain pour un nouveau défi !");
@@ -227,16 +230,17 @@ export const DailyChallenge = () => {
         ) : attempt ? (
           <div className="mt-5 space-y-3">
             {challenge.options.map((opt, idx) => {
-              const isCorrect = idx === challenge.correct_index;
               const isPicked = idx === attempt.selected_index;
+              const isCorrectPick = isPicked && attempt.is_correct;
+              const isWrongPick = isPicked && !attempt.is_correct;
               return (
                 <div
                   key={idx}
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-xl border text-sm",
-                    isCorrect
+                    isCorrectPick
                       ? "border-accent bg-accent/10"
-                      : isPicked
+                      : isWrongPick
                         ? "border-destructive/60 bg-destructive/10"
                         : "border-border bg-card opacity-60"
                   )}
@@ -244,16 +248,16 @@ export const DailyChallenge = () => {
                   <span
                     className={cn(
                       "flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold shrink-0",
-                      isCorrect
+                      isCorrectPick
                         ? "bg-accent text-accent-foreground"
-                        : isPicked
+                        : isWrongPick
                           ? "bg-destructive text-destructive-foreground"
                           : "bg-secondary text-muted-foreground"
                     )}
                   >
-                    {isCorrect ? (
+                    {isCorrectPick ? (
                       <Check className="h-4 w-4" />
-                    ) : isPicked ? (
+                    ) : isWrongPick ? (
                       <X className="h-4 w-4" />
                     ) : (
                       String.fromCharCode(65 + idx)

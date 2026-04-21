@@ -144,6 +144,13 @@ export type Database = {
             referencedRelation: "questions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "attempt_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       daily_challenge_attempts: {
@@ -180,6 +187,13 @@ export type Database = {
             columns: ["challenge_id"]
             isOneToOne: false
             referencedRelation: "daily_challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_challenge_attempts_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "daily_challenges_public"
             referencedColumns: ["id"]
           },
         ]
@@ -463,7 +477,71 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      daily_challenges_public: {
+        Row: {
+          bible_reference: string | null
+          challenge_date: string | null
+          created_at: string | null
+          id: string | null
+          options: Json | null
+          prompt: string | null
+        }
+        Insert: {
+          bible_reference?: string | null
+          challenge_date?: string | null
+          created_at?: string | null
+          id?: string | null
+          options?: Json | null
+          prompt?: string | null
+        }
+        Update: {
+          bible_reference?: string | null
+          challenge_date?: string | null
+          created_at?: string | null
+          id?: string | null
+          options?: Json | null
+          prompt?: string | null
+        }
+        Relationships: []
+      }
+      questions_public: {
+        Row: {
+          bible_reference: string | null
+          created_at: string | null
+          id: string | null
+          options: Json | null
+          position: number | null
+          prompt: string | null
+          quiz_id: string | null
+        }
+        Insert: {
+          bible_reference?: string | null
+          created_at?: string | null
+          id?: string | null
+          options?: Json | null
+          position?: number | null
+          prompt?: string | null
+          quiz_id?: string | null
+        }
+        Update: {
+          bible_reference?: string | null
+          created_at?: string | null
+          id?: string | null
+          options?: Json | null
+          position?: number | null
+          prompt?: string | null
+          quiz_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       has_role: {
@@ -473,6 +551,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      submit_daily_challenge: {
+        Args: { _challenge_id: string; _selected_index: number }
+        Returns: boolean
+      }
+      submit_quiz: { Args: { _answers: Json; _quiz_id: string }; Returns: Json }
     }
     Enums: {
       admin_request_status: "pending" | "approved" | "rejected"

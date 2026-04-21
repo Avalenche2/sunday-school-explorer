@@ -24,7 +24,6 @@ interface Question {
   id: string;
   prompt: string;
   options: string[];
-  correct_index: number;
   bible_reference: string | null;
   position: number;
 }
@@ -102,15 +101,19 @@ const QuizzPlay = () => {
 
       const [{ data: q }, { data: qs }] = await Promise.all([
         supabase.from("quizzes").select("id, title, description, bible_reference").eq("id", id).maybeSingle(),
-        supabase.from("questions").select("*").eq("quiz_id", id).order("position", { ascending: true }),
+        supabase.from("questions_public" as any).select("*").eq("quiz_id", id).order("position", { ascending: true }),
       ]);
 
       setQuiz(q as Quiz | null);
+      const rawQs = (qs ?? []) as Record<string, any>[];
       setQuestions(
-        (qs ?? []).map((row) => ({
-          ...row,
+        rawQs.map((row) => ({
+          id: row.id,
+          prompt: row.prompt,
           options: Array.isArray(row.options) ? (row.options as string[]) : [],
-        })) as Question[]
+          bible_reference: row.bible_reference ?? null,
+          position: row.position,
+        }))
       );
       setLoading(false);
     };
@@ -132,11 +135,6 @@ const QuizzPlay = () => {
     submittedRef.current = true;
     setSubmitting(true);
 
-    const score = questions.reduce(
-      (acc, q) => acc + (answers[q.id] === q.correct_index ? 1 : 0),
-      0
-    );
-
     const [{ data: priorAttempts }, { data: priorChallenges }] = await Promise.all([
       supabase
         .from("quiz_attempts")
@@ -154,13 +152,19 @@ const QuizzPlay = () => {
       challengeLite
     );
 
-    const { data: attempt, error: attemptErr } = await supabase
-      .from("quiz_attempts")
-      .insert({ user_id: user.id, quiz_id: id, score, total })
-      .select("id, completed_at")
-      .single();
+    // Build answers array for RPC
+    const answersArray = questions.map((q) => ({
+      question_id: q.id,
+      selected_index: answers[q.id] ?? -1,
+    }));
 
-    if (attemptErr || !attempt) {
+    const { data: result, error: rpcErr } = await supabase.rpc("submit_quiz", {
+      _quiz_id: id,
+      _answers: answersArray as any,
+    });
+
+    if (rpcErr || !result) {
+      submittedRef.current = false;
       setSubmitting(false);
       toast({
         title: "Oups",
@@ -170,18 +174,14 @@ const QuizzPlay = () => {
       return;
     }
 
-    const rows = questions.map((q) => ({
-      attempt_id: attempt.id,
-      question_id: q.id,
-      selected_index: answers[q.id],
-      is_correct: answers[q.id] === q.correct_index,
-    }));
-    await supabase.from("attempt_answers").insert(rows);
+    const res = result as any;
+    const score = res.score as number;
+    const total = res.total as number;
 
     const after = computeUnlockedBadges(
       [
         ...((priorAttempts ?? []) as AttemptLite[]),
-        { id: attempt.id, quiz_id: id, score, total, completed_at: attempt.completed_at },
+        { id: res.attempt_id, quiz_id: id, score, total, completed_at: new Date().toISOString() },
       ],
       undefined,
       challengeLite
