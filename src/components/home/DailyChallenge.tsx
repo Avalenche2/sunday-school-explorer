@@ -51,11 +51,15 @@ export const DailyChallenge = () => {
       .eq("challenge_date", today)
       .maybeSingle();
 
-    const ch = c
-      ? ({
-          ...c,
-          options: Array.isArray((c as any).options) ? ((c as any).options as string[]) : [],
-        } as Challenge)
+    const raw = c as Record<string, any> | null;
+    const ch: Challenge | null = raw
+      ? {
+          id: raw.id,
+          challenge_date: raw.challenge_date,
+          prompt: raw.prompt,
+          options: Array.isArray(raw.options) ? (raw.options as string[]) : [],
+          bible_reference: raw.bible_reference ?? null,
+        }
       : null;
     setChallenge(ch);
 
