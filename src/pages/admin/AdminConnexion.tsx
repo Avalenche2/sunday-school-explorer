@@ -112,7 +112,15 @@ const AdminConnexion = () => {
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="password">Mot de passe</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">Mot de passe</Label>
+            <Link
+              to="/admin/mot-de-passe-oublie"
+              className="text-xs text-muted-foreground hover:text-accent transition-colors"
+            >
+              Oublié ?
+            </Link>
+          </div>
           <Input
             id="password"
             type="password"
