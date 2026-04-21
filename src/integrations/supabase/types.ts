@@ -555,6 +555,7 @@ export type Database = {
         Args: { _challenge_id: string; _selected_index: number }
         Returns: boolean
       }
+      submit_quiz: { Args: { _answers: Json; _quiz_id: string }; Returns: Json }
     }
     Enums: {
       admin_request_status: "pending" | "approved" | "rejected"
