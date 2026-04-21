@@ -506,6 +506,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      submit_daily_challenge: {
+        Args: { _challenge_id: string; _selected_index: number }
+        Returns: boolean
+      }
     }
     Enums: {
       admin_request_status: "pending" | "approved" | "rejected"
