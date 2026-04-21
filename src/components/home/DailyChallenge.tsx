@@ -140,17 +140,19 @@ export const DailyChallenge = () => {
       return;
     }
 
+    const isCorrectBool = !!isCorrect;
+
     const after = computeUnlockedBadges(
       (priorAttempts ?? []) as AttemptLite[],
       undefined,
       [
         ...((priorChallenges ?? []) as DailyChallengeAttemptLite[]),
-        { challenge_date: challenge.challenge_date, is_correct: isCorrect },
+        { challenge_date: challenge.challenge_date, is_correct: isCorrectBool },
       ]
     );
     const newlyUnlocked = BADGES.filter((b) => after.has(b.id) && !before.has(b.id));
 
-    setAttempt({ selected_index: selected, is_correct: isCorrect });
+    setAttempt({ selected_index: selected, is_correct: isCorrectBool });
     setSubmitting(false);
 
     if (isCorrect) {
