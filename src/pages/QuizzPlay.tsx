@@ -24,7 +24,6 @@ interface Question {
   id: string;
   prompt: string;
   options: string[];
-  correct_index: number;
   bible_reference: string | null;
   position: number;
 }
