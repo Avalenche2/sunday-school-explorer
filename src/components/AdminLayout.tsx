@@ -162,7 +162,7 @@ export const AdminLayout = () => {
         </div>
 
         <div className="grid gap-6 lg:gap-8 lg:grid-cols-[220px_1fr]">
-          <aside>
+          <aside ref={asideRef}>
             <button
               type="button"
               onClick={() => setNavOpen((v) => !v)}
